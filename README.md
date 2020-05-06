@@ -1,1 +1,1 @@
-# Disease - Aggregator
+# Disease-Aggregator
