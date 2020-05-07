@@ -79,27 +79,62 @@ while read line; do
 
         # For numRecordsPerFile
         currentnumRecordsPerFile=0
+
+        #counter of current records in array
+        counterOfArray=0
         if [ "$currentnumRecordsPerFile" -lt "$5" ]; then
             if [ ${type[$((RANDOM%2))]} == 'ENTER' ]; then
                 echo 'ENTER'
+
+
                 record_id=$((record_id+1)) # += 1 the record_id because it must be a unique number
+                name=${names[$((RANDOM%15))]}
+                surname=${surnames[$((RANDOM%15))]}
+                disease=$(shuf -n 1 $1) # Pick a random line from diseaseFile
+                age=$((1+RANDOM%120))
 
-                disease=$(shuf -n 1 $1)
-
-                echo $record_id 'ENTER' ${names[$((RANDOM%15))]} ${surnames[$((RANDOM%15))]} $disease $((1+RANDOM%120))>> "../../etc/$path2/$date"
-
+                echo $record_id 'ENTER' $name $surname $disease $age>> "../../etc/$path2/$date"
+                array_exit_ids+=($record_id)
+                array_exit_names+=($name)
+                array_exit_surnames+=($surname)
+                array_exit_diseases+=($disease)
+                array_exit_ages+=($age)
+                counterOfArray=$((counterOfArray+1))
                 currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
             else
 
                 # if array is empty then we can't pop something so we have to push
                 if [ -z ${array_exit_ids[0]} ]; then
                     echo 'Not' ${array_exit_ids[0]} 'Y'
+
+                    record_id=$((record_id+1)) # += 1 the record_id because it must be a unique number
+                    name=${names[$((RANDOM%15))]}
+                    surname=${surnames[$((RANDOM%15))]}
+                    disease=$(shuf -n 1 $1) # Pick a random line from diseaseFile
+                    age=$((1+RANDOM%120))
+
+                    echo $record_id 'ENTER' $name $surname $disease $age>> "../../etc/$path2/$date"
+                    array_exit_ids+=($record_id)
+                    array_exit_names+=($name)
+                    array_exit_surnames+=($surname)
+                    array_exit_diseases+=($disease)
+                    array_exit_ages+=($age)
+                    counterOfArray=$((counterOfArray+1))
+                    currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
+
                 else
                     echo 'Hello2'
+                    counterOfArray=$((counterOfArray-1))
+                    # array_exit_ids=array_exit_ids($counterOfArray)
+                     # unset -v 'array_exit_names[$counterOfArray]'
+                    # unset array_exit_surnames[1+$counterOfArray]
+                    # unset array_exit_diseases[$(counterOfArray)]
+                    # unset array_exit_ages[$(counterOfArray)]
+                    echo ${array_exit_ids[$counterOfArray]} 'EXIT' ${array_exit_names[$counterOfArray]} ${array_exit_surnames[$counterOfArray]} ${array_exit_diseases[$counterOfArray]} ${array_exit_ages[$counterOfArray]}>> "../../etc/$path2/$date"
                 fi
             fi
-            echo ${names[$((RANDOM%15))]} >> "../../etc/$path2/$date"
-            currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
+            # echo ${names[$((RANDOM%15))]} >> "../../etc/$path2/$date"
+            # currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
         fi
 
     done
