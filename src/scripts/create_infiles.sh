@@ -2,19 +2,22 @@
 
 # Check arguments
 if [ "$#" -ne 5 ]; then                             # if arguments are not equal with 5 arguments then exit
-    echo "Error: Please give the correct number of arguments"
+    echo "Error Input: Please give the correct number of arguments"
     exit 1
 fi
 
 # after arguments checking we should have these values
 # $1 = diseaseFile, $2 = countriesFile, $3 = input_dir , $4 = numFilesPerDirectory, $5 = numRecordsPerFile
-echo "Script name: $0"
 
+if [ "$4" -le 0 ]; then                             # check 4th argument
+    echo "Error Input:  4/5th arguments have to be > 0 "
+    exit 1
+fi
 
-input_dir=("$3") # store the name of directory
-
-input_dir[1]="$4"
-echo ${input_dir[@]}
+if [ "$5" -le 0 ]; then                             # check 5th argument
+    echo "Error Input:  4/5th arguments have to be > 0 "
+    exit 1
+fi
 
 path=$3
 
@@ -29,32 +32,31 @@ starting_day=$((1+RANDOM%30))
 starting_month=$((1+RANDOM%12))
 starting_year=$((2010+RANDOM%10))
 
+dates=()
+
 starting_day="24"
 starting_month="12"
 starting_year="2018"
-
 
 # Initial variables that are going to hold current date
 rand_day=$starting_day
 rand_month=$starting_month
 rand_year=$starting_year
 
-# Initial arrays that are going to hold records for EXIT
-array_exit_ids=()
-array_exit_names=()
-array_exit_surnames=()
-array_exit_diseases=()
-array_exit_ages=()
+counterOfCountries=0
 
-# Unique Record id
-record_id=0
+# Sort countries File
+sort $2 > ../../etc/tmp.txt
+cp ../../etc/tmp.txt $2
+rm -r ../../etc/tmp.txt
+
 # For every line from countriesFile
 while read line; do
-    mkdir -p ../../etc/$path/$line # Create a subdirectory
-    echo "$i) $line"
+    mkdir -p ../../etc/$path/$line # Create a directory/subdirectory
+    # echo "$i) $line"
 
     # For numFilesPerDirectory
-    for (( depth = 1; depth < $4; depth++)); do
+    for (( depth = 0; depth < $4; depth++)); do
         path2=$path/$line
 
         # if day is less or equal than 30
@@ -74,69 +76,111 @@ while read line; do
         fi
 
         date="$rand_day-$rand_month-$rand_year"
+        dates+=($date)
         # Create file with date as a name
         touch "../../etc/$path2/$date"
 
-        # For numRecordsPerFile
-        currentnumRecordsPerFile=0
+        # echo $date
+    done
+    counterOfCountries=$((counterOfCountries+1)) # We need this counter to know the total records
+    i=$((i+1))
+done < $2
 
-        #counter of current records in array
-        counterOfArray=0
-        if [ "$currentnumRecordsPerFile" -lt "$5" ]; then
-            if [ ${type[$((RANDOM%2))]} == 'ENTER' ]; then
-                echo 'ENTER'
+# -------------------------- Create Recods ----------------------------------
+
+# Initial arrays that are going to hold records for ENTER/EXIT
+array_Enter_RecordID=()
+array_Enter_Names=()
+array_Enter_Surnames=()
+array_Enter_Diseases=()
+array_Enter_Ages=()
+
+array_Exit_RecordID=()
+array_Exit_Names=()
+array_Exit_Surnames=()
+array_Exit_Diseases=()
+array_Exit_Ages=()
 
 
-                record_id=$((record_id+1)) # += 1 the record_id because it must be a unique number
-                name=${names[$((RANDOM%15))]}
-                surname=${surnames[$((RANDOM%15))]}
-                disease=$(shuf -n 1 $1) # Pick a random line from diseaseFile
-                age=$((1+RANDOM%120))
 
-                echo $record_id 'ENTER' $name $surname $disease $age>> "../../etc/$path2/$date"
-                array_exit_ids+=($record_id)
-                array_exit_names+=($name)
-                array_exit_surnames+=($surname)
-                array_exit_diseases+=($disease)
-                array_exit_ages+=($age)
-                counterOfArray=$((counterOfArray+1))
-                currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
+# Unique Record id
+record_id=0
+
+
+totalRecords=$(($4*$5 *$counterOfCountries)) # total Records
+
+# For totalRecords
+for (( i = 0; i < $totalRecords; i++)); do
+
+    record_id=$((record_id+1)) # += 1 the record_id because it must be a unique number
+    name=${names[$((RANDOM%15))]}
+    surname=${surnames[$((RANDOM%15))]}
+    disease=$(shuf -n 1 $1) # Pick a random line from diseaseFile
+    age=$((1+RANDOM%120))
+
+    # Push in Enter array
+    array_Enter_RecordID+=($record_id)
+    array_Enter_Names+=($name)
+    array_Enter_Surnames+=($surname)
+    array_Enter_Diseases+=($disease)
+    array_Enter_Ages+=($age)
+
+    # Push in Exit Array
+    array_Exit_RecordID+=($record_id)
+    array_Exit_Names+=($name)
+    array_Exit_Surnames+=($surname)
+    array_Exit_Diseases+=($disease)
+    array_Exit_Ages+=($age)
+
+
+done
+
+counterOfEnters=0
+counterOfExits=0
+counterOfDate=0
+halfrecords=$((totalRecords/2))
+# Fill the files with records
+while read line; do
+
+    path2=$path/$line
+    for (( j = 0; j < $4; j++)); do
+
+        date=$(ls ../../etc/$path2 | awk 'NR=='$((j+1)))
+        date=${dates[$counterOfDate]}
+        counterOfDate=$((counterOfDate+1))
+        path3=$path2/$date
+
+        for (( k = 0; k < $5; k++)); do
+            if [ "$counterOfEnters" -eq 0 ]; then # Only for first record
+                echo ${array_Enter_RecordID[$counterOfEnters]} 'ENTER' ${array_Enter_Names[$counterOfEnters]} ${array_Enter_Surnames[$counterOfEnters]} ${array_Enter_Diseases[$counterOfEnters]} ${array_Enter_Ages[$counterOfEnters]}>> "../../etc/$path3"
+                counterOfEnters=$((counterOfEnters+1))
             else
+                coin=$((RANDOM%2))
+                # echo $coin
+                if [ "$coin" -eq 0 ]; then   # ENTER
+                    if [[ $counterOfEnters -lt $halfrecords ]]; then # if current enters are less than half records then you can push
+                        echo ${array_Enter_RecordID[$counterOfEnters]} 'ENTER' ${array_Enter_Names[$counterOfEnters]} ${array_Enter_Surnames[$counterOfEnters]} ${array_Enter_Diseases[$counterOfEnters]} ${array_Enter_Ages[$counterOfEnters]}>> "../../etc/$path3"
+                        counterOfEnters=$((counterOfEnters+1))
+                    else # else you can't put more so you have to push an exit record
+                        if [[ $counterOfExits -lt $halfrecords ]]; then
+                            echo ${array_Exit_RecordID[$counterOfExits]} 'EXIT' ${array_Exit_Names[$counterOfExits]} ${array_Exit_Surnames[$counterOfExits]} ${array_Exit_Diseases[$counterOfExits]} ${array_Exit_Ages[$counterOfExits]}>> "../../etc/$path3"
+                            counterOfExits=$((counterOfExits+1))
+                        fi
+                    fi
 
-                # if array is empty then we can't pop something so we have to push
-                if [ -z ${array_exit_ids[0]} ]; then
-                    echo 'Not' ${array_exit_ids[0]} 'Y'
+                else                        # EXIT
+                    if [[ $counterOfExits -lt $counterOfEnters ]]; then   # if exit records are less than enter's
+                        echo ${array_Exit_RecordID[$counterOfExits]} 'EXIT' ${array_Exit_Names[$counterOfExits]} ${array_Exit_Surnames[$counterOfExits]} ${array_Exit_Diseases[$counterOfExits]} ${array_Exit_Ages[$counterOfExits]}>> "../../etc/$path3"
+                        counterOfExits=$((counterOfExits+1))
+                    else # else put that records in enters
+                        echo ${array_Enter_RecordID[$counterOfEnters]} 'ENTER' ${array_Enter_Names[$counterOfEnters]} ${array_Enter_Surnames[$counterOfEnters]} ${array_Enter_Diseases[$counterOfEnters]} ${array_Enter_Ages[$counterOfEnters]}>> "../../etc/$path3"
+                        counterOfEnters=$((counterOfEnters+1))
+                    fi
 
-                    record_id=$((record_id+1)) # += 1 the record_id because it must be a unique number
-                    name=${names[$((RANDOM%15))]}
-                    surname=${surnames[$((RANDOM%15))]}
-                    disease=$(shuf -n 1 $1) # Pick a random line from diseaseFile
-                    age=$((1+RANDOM%120))
-
-                    echo $record_id 'ENTER' $name $surname $disease $age>> "../../etc/$path2/$date"
-                    array_exit_ids+=($record_id)
-                    array_exit_names+=($name)
-                    array_exit_surnames+=($surname)
-                    array_exit_diseases+=($disease)
-                    array_exit_ages+=($age)
-                    counterOfArray=$((counterOfArray+1))
-                    currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
-
-                else
-                    echo 'Hello2'
-                    counterOfArray=$((counterOfArray-1))
-                    # array_exit_ids=array_exit_ids($counterOfArray)
-                     # unset -v 'array_exit_names[$counterOfArray]'
-                    # unset array_exit_surnames[1+$counterOfArray]
-                    # unset array_exit_diseases[$(counterOfArray)]
-                    # unset array_exit_ages[$(counterOfArray)]
-                    echo ${array_exit_ids[$counterOfArray]} 'EXIT' ${array_exit_names[$counterOfArray]} ${array_exit_surnames[$counterOfArray]} ${array_exit_diseases[$counterOfArray]} ${array_exit_ages[$counterOfArray]}>> "../../etc/$path2/$date"
                 fi
             fi
-            # echo ${names[$((RANDOM%15))]} >> "../../etc/$path2/$date"
-            # currentnumRecordsPerFile=$((currentnumRecordsPerFile+1))
-        fi
 
+        done
     done
     i=$((i+1))
 done < $2
