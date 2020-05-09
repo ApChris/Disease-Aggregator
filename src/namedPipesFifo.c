@@ -45,12 +45,46 @@ bool UnlinkNamedPipe_FIFO(long pid, char * flag)
     return true;
 }
 
+bool ReadFromNamedPipe(long fileDescriptor, char * buffer)
+{
+    long bytesNumber;
+    if( (bytesNumber = read(fileDescriptor, buffer, MBUFFER)) >= 0)
+    {
+        buffer[bytesNumber] = '\0';
+        return bytesNumber;
+    }
+}
+
+bool WriteToNamedPipe(long fileDescriptor, char * buffer)
+{
+
+    if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
+    {
+        perror("ERROR:WriteToNamedPipe has been failed");
+        exit(EXIT_FAILURE);
+    }
+}
+
 long OpenRead(long pid)
 {
     char name[50];
     long fileDescriptor;
     sprintf(name, "%s_%ld_read", FIFOPATH, pid);
     if( (fileDescriptor = open(name, O_NONBLOCK | O_RDONLY)) < 0)
+    {
+        perror("Error:OpenRead from Fifo has been failed");
+        exit(EXIT_FAILURE);
+    }
+    return fileDescriptor;
+}
+
+
+long OpenWrite(long pid)
+{
+    char name[50];
+    long fileDescriptor;
+    sprintf(name, "%s_%ld_write", FIFOPATH, pid);
+    if( (fileDescriptor = open(name, O_WRONLY)) < 0)
     {
         perror("Error:OpenRead from Fifo has been failed");
         exit(EXIT_FAILURE);
