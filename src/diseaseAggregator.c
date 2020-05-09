@@ -1,6 +1,8 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+
+#include "../include/namedPipesFifo.h"
+
 
 int main(int argc, char const *argv[])
 {
@@ -26,13 +28,33 @@ int main(int argc, char const *argv[])
       }
       else if(strcmp(argv[i],"-i") == 0)    // Path of input _dir
       {
-          path = (char *)malloc(sizeof(char)*strlen(argv[i+1]));
+          path = (char *)malloc(sizeof(char)*strlen(argv[i+1])+1);
           strcpy(path,argv[i+1]);
       }
 
     }
 
     printf("workers:%lu\nbufferSize:%lu\npath:%s\n",workers,bufferSize,path);
+    bool result;
+    for (long i = 0; i < workers; i++)
+    {
+        result = CreateNamedPipe_FIFO(i,"write");
+        result = CreateNamedPipe_FIFO(i,"read");
+    }
+
+    // for (long i = 0; i < workers; i++)
+    // {
+    //     result = UnlinkNamedPipe_FIFO(i,"write");
+    //     result = UnlinkNamedPipe_FIFO(i,"read");
+    // }
+    // static struct sigaction act;
+    // static struct sigaction childAct;
+    // act.sa_handler = terminate;
+
+
+
+
+
     free(path);
     return 0;
 }
