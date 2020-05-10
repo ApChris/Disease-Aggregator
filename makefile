@@ -1,5 +1,6 @@
 OBJS = 	build/diseaseAggregator.o \
 		build/namedPipesFifo.o \
+		build/list.o \
 
 
 CC = gcc
@@ -17,6 +18,9 @@ build/diseaseAggregator.o: src/diseaseAggregator.c
 	$(CC) $(FLAGS) $< -o $@
 
 build/namedPipesFifo.o: src/namedPipesFifo.c
+	$(CC) $(FLAGS) $< -o $@
+
+build/list.o: src/list.c
 	$(CC) $(FLAGS) $< -o $@
 
 $(TARGET) : $(OBJS)
