@@ -150,20 +150,7 @@ bool SearchInList_Path(PathNode ** head, char * path)
     return false;
 }
 
-long LenOfList_Path(PathNode * head)
-{
-    long counter = 0;
-    // Set current pointer to points at head
-    PathNode * current = head;
 
-    // for every list node
-    while(current != NULL)
-    {
-        counter++;
-        current = current -> next;
-    }
-    return counter;
-}
 void DeleteList_Path(PathNode ** head)
 {
     PathNode * current = * head;
