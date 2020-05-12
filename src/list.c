@@ -150,6 +150,22 @@ bool SearchInList_Path(PathNode ** head, char * path)
     return false;
 }
 
+char * GetValue_Path(PathNode ** head, long i)
+{
+
+    PathNode * tmp = *head;
+    long j = 0;
+    while(tmp != NULL)
+    {
+        if(j == i)
+        {
+            return tmp -> path;
+        }
+        tmp = tmp -> next;
+    }
+    return NULL;
+}
+
 
 void DeleteList_Path(PathNode ** head)
 {
