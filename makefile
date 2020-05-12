@@ -1,6 +1,7 @@
 OBJS = 	build/diseaseAggregator.o \
 		build/namedPipesFifo.o \
 		build/list.o \
+		build/parentFunctions.o \
 
 
 OBJS2 = build/worker.o \
@@ -29,6 +30,9 @@ build/list.o: src/list.c
 	$(CC) $(FLAGS) $< -o $@
 
 build/worker.o: src/worker.c
+	$(CC) $(FLAGS) $< -o $@
+
+build/parentFunctions.o: src/parentFunctions.c
 	$(CC) $(FLAGS) $< -o $@
 
 $(TARGET) : $(OBJS)
