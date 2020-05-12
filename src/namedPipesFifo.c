@@ -45,7 +45,7 @@ bool UnlinkNamedPipe_FIFO(long pid, char * flag)
     return true;
 }
 
-bool ReadFromNamedPipe(long fileDescriptor, char * buffer)
+long ReadFromNamedPipe(long fileDescriptor, char * buffer)
 {
     long bytesNumber;
     if( (bytesNumber = read(fileDescriptor, buffer, MBUFFER)) >= 0)
@@ -53,9 +53,10 @@ bool ReadFromNamedPipe(long fileDescriptor, char * buffer)
         buffer[bytesNumber] = '\0';
         return bytesNumber;
     }
+    return -1;
 }
 
-bool WriteToNamedPipe(long fileDescriptor, char * buffer)
+void WriteToNamedPipe(long fileDescriptor, char * buffer)
 {
 
     if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
