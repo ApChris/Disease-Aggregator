@@ -29,5 +29,5 @@ bool SearchInList_Path(PathNode ** head, char * path);
 void DeleteList_Path(PathNode ** head);
 void DeleteNode_Path(PathNode ** head, char * path);
 void PrintList_Path(PathNode ** head);
-
+char * GetValue_Path(PathNode ** head, long i);
 #endif
