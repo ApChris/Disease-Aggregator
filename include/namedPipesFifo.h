@@ -18,8 +18,8 @@
 
 bool CreateNamedPipe_FIFO(long pid, char * flag);
 bool UnlinkNamedPipe_FIFO(long pid, char * flag);
-bool ReadFromNamedPipe(long fileDescriptor, char * buffer);
-bool WriteToNamedPipe(long fileDescriptor, char * buffer);
+long ReadFromNamedPipe(long fileDescriptor, char * buffer);
+void WriteToNamedPipe(long fileDescriptor, char * buffer);
 long OpenRead(long pid);
 long OpenWrite(long pid);
 #endif
