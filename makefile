@@ -1,11 +1,12 @@
 OBJS = 	build/diseaseAggregator.o \
-		build/namedPipesFifo.o \
+		build/parentNamedPipesFifo.o \
 		build/list.o \
 		build/parentFunctions.o \
 
 
 OBJS2 = build/worker.o \
-
+		build/workerFunctions.o \
+		build/workerNamedPipesFifo.o
 
 
 CC = gcc
@@ -23,16 +24,24 @@ clean:
 build/diseaseAggregator.o: src/diseaseAggregator.c
 	$(CC) $(FLAGS) $< -o $@
 
-build/namedPipesFifo.o: src/namedPipesFifo.c
+build/parentNamedPipesFifo.o: src/parentNamedPipesFifo.c
 	$(CC) $(FLAGS) $< -o $@
 
 build/list.o: src/list.c
 	$(CC) $(FLAGS) $< -o $@
 
+build/parentFunctions.o: src/parentFunctions.c
+	$(CC) $(FLAGS) $< -o $@
+
+
+
 build/worker.o: src/worker.c
 	$(CC) $(FLAGS) $< -o $@
 
-build/parentFunctions.o: src/parentFunctions.c
+build/workerFunctions.o: src/workerFunctions.c
+	$(CC) $(FLAGS) $< -o $@
+
+build/workerNamedPipesFifo.o: src/workerNamedPipesFifo.c
 	$(CC) $(FLAGS) $< -o $@
 
 $(TARGET) : $(OBJS)
