@@ -162,6 +162,7 @@ char * GetValue_Path(PathNode ** head, long i)
             return tmp -> path;
         }
         tmp = tmp -> next;
+        j++;
     }
     return NULL;
 }
