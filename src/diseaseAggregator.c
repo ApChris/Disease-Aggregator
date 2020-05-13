@@ -1,73 +1,9 @@
 #include <stdio.h>
 #include <dirent.h>
 
-#include "../include/namedPipesFifo.h"
-#include "../include/list.h"
 
-#define PROCESSIDSTRING 50
+#include "../include/parentFunctions.h"
 
-
-PathNode * subDirectoriesPathList = NULL;
-
-long CreateWorker(long processID, long totalWorkers)
-{
-    // array of arguments
-    char ** workerArguments;
-
-    pid_t workerPid;
-
-    if( (workerArguments = (char **)malloc(sizeof(char *)*3)) == NULL)
-    {
-        perror("Error: 1st malloc has been failed from CreateWorker function!");
-        exit(EXIT_FAILURE);
-    }
-
-    if( (workerArguments[0] = (char *)malloc(sizeof(char)* PROCESSIDSTRING)) == NULL)
-    {
-        perror("Error: malloc has been failed from CreateWorker function!");
-        exit(EXIT_FAILURE);
-    }
-
-
-    // convert processID to string
-    sprintf(workerArguments[0], "%ld", processID);
-
-
-    // Length of list , Number of subdirectories
-    long totalSubDirectories = LenOfList(subDirectoriesPathList);
-
-    long i = 0;
-    while(i < totalSubDirectories)
-    {
-        if( (i%totalWorkers) == processID)
-        {
-
-            workerArguments[1] = (char *)malloc(1 + sizeof(char)* strlen(GetValue_Path(&subDirectoriesPathList,i) ));
-            strcpy(workerArguments[1],GetValue_Path(&subDirectoriesPathList,i));
-        }
-        i++;
-    }
-
-    // Put Null because argv from workers need to know where to stop
-    workerArguments[2] = NULL;
-
-    // if child
-    if( (workerPid = fork()) == 0)
-    {
-        execvp("./worker", workerArguments);
-    }
-    else
-    {
-        usleep(1);
-        for (long j = 0; j < 3; j++)
-        {
-            free(workerArguments[j]);
-        }
-        free(workerArguments);
-        return workerPid;
-    }
-
-}
 
 int main(int argc, char const *argv[])
 {
@@ -104,39 +40,13 @@ int main(int argc, char const *argv[])
     long i = INITCOUNTER;
     while (i < totalWorkers)
     {
-        result = CreateNamedPipe_FIFO(i,"write");
-        result = CreateNamedPipe_FIFO(i,"read");
+        result = CreateNamedPipe_FIFO(i,"main");
+        result = CreateNamedPipe_FIFO(i,"secondary");
+
         i++;
     }
 
-    Node * workersList = NULL;
-    for(long i = 0; i < totalWorkers; i++)
-    {
-            PushNode(&workersList, i);
-    }
-    printf("Length of list %ld\n", LenOfList(workersList));
-    PrintList(&workersList);
-    DeleteNode(&workersList, 3);
-    printf("Length of list %ld\n", LenOfList(workersList));
-    PrintList(&workersList);
-
-    DeleteList(&workersList);
-
-
-
-    PushNode_Path(&subDirectoriesPathList, "chris");
-    PushNode_Path(&subDirectoriesPathList, "xristoforos");
-    PushNode_Path(&subDirectoriesPathList, "farox");
-
-    printf("Length of list %ld\n", LenOfList(subDirectoriesPathList));
-    PrintList_Path(&subDirectoriesPathList);
-    DeleteNode_Path(&subDirectoriesPathList, "chris");
-    printf("Length of list %ld\n", LenOfList(subDirectoriesPathList));
-    PrintList_Path(&subDirectoriesPathList);
-
-    DeleteList_Path(&subDirectoriesPathList);
-
-
+    PathNode * subDirectoriesPathList = NULL;
 
     struct dirent * directory;
 
@@ -166,67 +76,43 @@ int main(int argc, char const *argv[])
     closedir(directoryPointer);
     PrintList_Path(&subDirectoriesPathList);
 
-    long x =CreateWorker(0, totalWorkers);
 
-        free(path);
-        DeleteList_Path(&subDirectoriesPathList);
+    Node * workersPidList = NULL;
+    for(long i = 0; i < totalWorkers; i++)
+    {
+        PushNode(&workersPidList,CreateWorker(i, totalWorkers, subDirectoriesPathList));
+    }
 
-
-
-    // FILE * directoryFilePointer;
-    // if( (directoryFilePointer = fopen(path,"r")) == NULL)
-    // {
-    //     perror("File has not been opened! diseaseAggregator.c");
-    //     exit(EXIT_FAILURE);
-    //
-    // }
-    //
-    //
-    // char * subdirectoryPath;
-    // long res;
-    // while( (res = fscanf(directoryFilePointer,"%ms",&subdirectoryPath)) != EOF)
-    // {
-    //     if(res != 1)
-    //     {
-    //         perror("Error in fscanf diseaseAggregator.c!");
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     else
-    //     {
-    //         PushNode_Path(&subDirectoriesPathList,subdirectoryPath);
-    //     }
-    // }
-
-    // PrintList_Path(&pathList);
-    // fclose(directoryFilePointer);
+    // Node * writeNamedPipeList = NULL;
     // i = INITCOUNTER;
-    // while (i < workers)
+    // while (i < totalWorkers)
     // {
-    //     printf("%ld\n",OpenWrite(i));
+    //     PushNode(&writeNamedPipeList,OpenRead(i));
     //     i++;
     // }
     //
+    // Node * readNamedPipeList = NULL;
     // i = INITCOUNTER;
-    // while (i < workers)
+    // while (i < totalWorkers)
     // {
-    //     result = OpenRead(i);
+    //     PushNode(&readNamedPipeList,OpenRead(i));
     //     i++;
     // }
-    //
-    // for (long i = 0; i < workers; i++)
-    // {
-    //     result = UnlinkNamedPipe_FIFO(i,"write");
-    //     result = UnlinkNamedPipe_FIFO(i,"read");
-    // }
-
-    // static struct sigaction act;
-    // static struct sigaction childAct;
-    // act.sa_handler = terminate;
 
 
+    printf("Waiting!!!\n");
+    sleep(5);
+
+    for (long i = 0; i < totalWorkers; i++)
+    {
+        result = UnlinkNamedPipe_FIFO(i,"main");
+        result = UnlinkNamedPipe_FIFO(i,"secondary");
+    }
 
 
-
+    free(path);
+    DeleteList_Path(&subDirectoriesPathList);
+    DeleteList(&workersPidList);
 
     return 0;
 }
