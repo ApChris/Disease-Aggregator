@@ -6,7 +6,11 @@ OBJS = 	build/diseaseAggregator.o \
 
 OBJS2 = build/worker.o \
 		build/workerFunctions.o \
-		build/workerNamedPipesFifo.o
+		build/workerNamedPipesFifo.o \
+		build/list.o \
+		build/date.o \
+		build/hash.o \
+		
 
 
 CC = gcc
@@ -43,6 +47,15 @@ build/workerFunctions.o: src/workerFunctions.c
 
 build/workerNamedPipesFifo.o: src/workerNamedPipesFifo.c
 	$(CC) $(FLAGS) $< -o $@
+
+
+build/date.o: src/date.c
+	$(CC) $(FLAGS) $< -o $@
+
+build/hash.o: src/hash.c
+	$(CC) $(FLAGS) $< -o $@
+
+
 
 $(TARGET) : $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ -lm
