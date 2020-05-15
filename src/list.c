@@ -116,6 +116,21 @@ void PrintList(Node ** head)
     printf("\n");
 }
 
+void Reverse(Node ** head)
+{
+    Node * prev = NULL;
+    Node * current = *head;
+    Node * next = NULL;
+
+    while(current != NULL)
+    {
+        next = current -> next;
+        current -> next = prev;
+        prev = current;
+        current = next;
+    }
+    *head = prev;
+}
 /////////////////////////////// Path ///////////////////////////////
 
 
@@ -233,4 +248,20 @@ void PrintList_Path(PathNode ** head)
         tmp = tmp -> next;
     }
     printf("\n");
+}
+
+void Reverse_Path(PathNode ** head)
+{
+    PathNode * prev = NULL;
+    PathNode * current = *head;
+    PathNode * next = NULL;
+
+    while(current != NULL)
+    {
+        next = current -> next;
+        current -> next = prev;
+        prev = current;
+        current = next;
+    }
+    *head = prev;
 }
