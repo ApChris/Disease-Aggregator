@@ -23,6 +23,8 @@ long LenOfList(void * head);
 void DeleteList(Node ** head);
 void DeleteNode(Node ** head, long data);
 void PrintList(Node ** head);
+void Reverse(Node ** head);
+
 
 void PushNode_Path(PathNode ** head, char * path);
 bool SearchInList_Path(PathNode ** head, char * path);
@@ -30,4 +32,5 @@ void DeleteList_Path(PathNode ** head);
 void DeleteNode_Path(PathNode ** head, char * path);
 void PrintList_Path(PathNode ** head);
 char * GetValue_Path(PathNode ** head, long i);
+void Reverse_Path(PathNode ** head);
 #endif
