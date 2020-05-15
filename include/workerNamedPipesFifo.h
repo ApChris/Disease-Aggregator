@@ -11,11 +11,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 #define FIFOPATH "etc/fifo/myFIFO"
 
 #define MBUFFER 1000
 #define INITCOUNTER 0
-
+#define PROCESSIDSTRING 50
 
 bool UnlinkNamedPipe_FIFO(long pid, char * flag);
 long ReadFromNamedPipe(long fileDescriptor, char * buffer);
