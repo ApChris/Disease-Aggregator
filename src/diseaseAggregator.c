@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
     }
 
     PathNode * subDirectoriesPathList = NULL;
-
+    // GetListOfSubDirectories(path,subDirectoriesPathList);
     struct dirent * directory;
 
     DIR * directoryPointer;
@@ -74,6 +74,7 @@ int main(int argc, char const *argv[])
         free(name);
     }
     closedir(directoryPointer);
+
     PrintList_Path(&subDirectoriesPathList);
 
 
@@ -83,33 +84,38 @@ int main(int argc, char const *argv[])
         PushNode(&workersPidList,CreateWorker(i, totalWorkers, subDirectoriesPathList));
     }
 
-    // Node * writeNamedPipeList = NULL;
-    // i = INITCOUNTER;
-    // while (i < totalWorkers)
-    // {
-    //     PushNode(&writeNamedPipeList,OpenRead(i));
-    //     i++;
-    // }
-    //
-    // Node * readNamedPipeList = NULL;
-    // i = INITCOUNTER;
-    // while (i < totalWorkers)
-    // {
-    //     PushNode(&readNamedPipeList,OpenRead(i));
-    //     i++;
-    // }
+    Node * writeNamedPipeList = NULL;
+    i = INITCOUNTER;
+    while (i < totalWorkers)
+    {
+        PushNode(&writeNamedPipeList,OpenWrite(i));
+        i++;
+    }
+
+    Node * readNamedPipeList = NULL;
+    i = INITCOUNTER;
+    while (i < totalWorkers)
+    {
+        PushNode(&readNamedPipeList,OpenRead(i));
+        i++;
+    }
 
 
     printf("Waiting!!!\n");
-    sleep(5);
+    sleep(2);
+
+    // while(1)
+    // {
+    //     sleep(10);
+    // }
+
+
 
     for (long i = 0; i < totalWorkers; i++)
     {
         result = UnlinkNamedPipe_FIFO(i,"main");
         result = UnlinkNamedPipe_FIFO(i,"secondary");
     }
-
-
     free(path);
     DeleteList_Path(&subDirectoriesPathList);
     DeleteList(&workersPidList);
