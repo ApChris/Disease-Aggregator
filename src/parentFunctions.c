@@ -1,6 +1,7 @@
 #include "../include/parentFunctions.h"
 
 
+
 long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPathList)
 {
     // array of arguments
