@@ -114,7 +114,7 @@ void PatientInfo_Print(const PatientInfo * info)
 {
     if(info -> exitDate -> day == TAG)
     {
-        printf("%s %s %s %s %s %ld-%ld-%ld -\n",info -> recordID, info -> patientFirstName, info -> patientLastName,info -> diseaseID, info -> country, info -> age, info -> entryDate -> day, info -> entryDate -> month, info -> entryDate -> year);
+        printf("%s %s %s %s %s %ld %ld-%ld-%ld -\n",info -> recordID, info -> patientFirstName, info -> patientLastName,info -> diseaseID, info -> country, info -> age, info -> entryDate -> day, info -> entryDate -> month, info -> entryDate -> year);
     }
     else
     {

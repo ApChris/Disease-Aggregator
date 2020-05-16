@@ -131,6 +131,25 @@ void Reverse(Node ** head)
     }
     *head = prev;
 }
+
+
+long GetValue(Node ** head, long i)
+{
+
+    Node * tmp = *head;
+    long j = 0;
+    while(tmp != NULL)
+    {
+        if(j == i)
+        {
+            return tmp -> item;
+        }
+        tmp = tmp -> next;
+        j++;
+    }
+    return FLAG;
+}
+
 /////////////////////////////// Path ///////////////////////////////
 
 

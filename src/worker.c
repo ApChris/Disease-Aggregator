@@ -4,6 +4,7 @@
 #include "../include/workerFunctions.h"
 
 
+
 int main(int argc, const char *argv[])
 {
     printf("WORKER HEREE!!!!\n");
@@ -12,25 +13,25 @@ int main(int argc, const char *argv[])
         printf("-->%s\n", argv[i]);
     }
 
-    char * pidStringFormat;
-    if( (pidStringFormat = (char *)malloc(sizeof(char)* PROCESSIDSTRING)) == NULL)
-    {
-        perror("Error: malloc has been failed in worker.c! - WORKER");
-        exit(EXIT_FAILURE);
-    }
-    // convert processID to string
-    sprintf(pidStringFormat, "%ld", atol(argv[0]));
-    printf("%ld\n",atol(argv[0]));
-
+    // char * pidStringFormat;
+    // if( (pidStringFormat = (char *)malloc(sizeof(char)* PROCESSIDSTRING)) == NULL)
+    // {
+    //     perror("Error: malloc has been failed in worker.c! - WORKER");
+    //     exit(EXIT_FAILURE);
+    // }
+    // // convert processID to string
+    // sprintf(pidStringFormat, "%ld", atol(argv[0]));
+    // printf("%ld\n",atol(argv[0]));
+    //
     // Get country from subDirectoryPath
-    // char * country = (char *)malloc(1 + sizeof(char) * strlen(argv[1]));
-    // strcpy(country,argv[1]);
+    char * country = (char *)malloc(1 + sizeof(char) * strlen(argv[1]));
+    strcpy(country,argv[1]);
     char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
-    // char * tok = NULL;
-    // tok = strtok(country, delimiters);
-    // tok = strtok(NULL, delimiters);
-    // tok = strtok(NULL, delimiters);
-    // printf("%s\n", tok);
+    char * tok = NULL;
+    tok = strtok(country, delimiters);
+    tok = strtok(NULL, delimiters);
+    tok = strtok(NULL, delimiters);
+    strcpy(country,tok);
 
 
     // Read files from subDirectory
@@ -57,7 +58,7 @@ int main(int argc, const char *argv[])
         {
             continue;
         }
-        currentDate = malloc(sizeof(char) * strlen(subDirectory -> d_name));
+        currentDate = malloc(1 + sizeof(char) * strlen(subDirectory -> d_name));
         strcpy(currentDate,subDirectory -> d_name);
         char * tok = NULL;
         if(counter == 0) // only for first file
@@ -70,6 +71,7 @@ int main(int argc, const char *argv[])
             tok = strtok(NULL, delimiters);
             datesArray[0].year = atol(tok);
             counter++;
+            free(currentDate);
             continue;
         }
         if( (datesArray = realloc(datesArray, sizeof(*datesArray)*(counter + 1)) ) == NULL)
@@ -88,6 +90,8 @@ int main(int argc, const char *argv[])
         datesArray[counter].year = atol(tok);
 
         counter++;
+        free(currentDate);
+
     }
     closedir(subDirectoryPointer);
 
@@ -116,7 +120,7 @@ int main(int argc, const char *argv[])
 
         }
 
-        char * currentMinDate[10];
+        char * currentMinDate[12];
 
         sprintf(currentMinDate, "%ld-%ld-%ld", datesArray[min].day, datesArray[min].month, datesArray[min].year);
 
@@ -136,40 +140,72 @@ int main(int argc, const char *argv[])
     PrintList_Path(&filesPathList);
 
 
+    Hash * diseaseHash = Hash_Init(11, 512);
 
-
-    for (long i = 0; i < LenOfList(&filesPathList); i++)
+    for (long i = 0; i < LenOfList(filesPathList); i++)
     {
-        // ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
+        // printf("%s\n",GetValue_Path(&filesPathList, i));
+        char * currentDate = malloc(1 + sizeof(char) * strlen(GetValue_Path(&filesPathList, i)));
+        strcpy(currentDate,GetValue_Path(&filesPathList, i));
+        Date * cdate = malloc(sizeof(*cdate));
+        char * tok = NULL;
+        tok = strtok(currentDate, delimiters);
+        tok = strtok(NULL, delimiters);
+        tok = strtok(NULL, delimiters);
+
+        // day
+        tok = strtok(NULL, delimiters);
+
+        cdate -> day = atol(tok);
+
+        tok = strtok(NULL, delimiters);
+        cdate -> month = atol(tok);
+        tok = strtok(NULL, delimiters);
+        cdate -> year = atol(tok);
+
+
+        long errorRecords = ReadFile(GetValue_Path(&filesPathList, i), diseaseHash, cdate, country);
+        // printf("HELLOOO\n\n\n\n\n\n\n\n\n");
+        free(currentDate);
+        free(cdate);
+
     }
-
-    // Get date
-    // Date * entryDate;
-    // entryDate = (Date *)malloc(sizeof(Date));
-    // tok = strtok(NULL,delimiters);
-    // entryDate -> day = (long)atoi(tok);
-    // tok = strtok(NULL,delimiters);
-    // entryDate -> month = (long)atoi(tok);
-    // tok = strtok(NULL,delimiters);
-    // entryDate -> year = (long)atoi(tok);
-
-    // printf("%ld-%ld-%ld\n",entryDate -> day, entryDate -> month, entryDate -> year);
+    // Hash_Print(diseaseHash);
+    // printf("\n\n\n\n\n\n\n\nHELLOOO\n");
 
 
-    // DeleteList_Path(&filesPathList);
-    // free(filesPathList);
+    // Deallocates
+    free(datesArray);
+    free(country);
+
+    DeleteList_Path(&filesPathList);
+    free(filesPathList);
+
+    Hash_Deallocate(&diseaseHash,1);
+    free(diseaseHash);
 
 
+    // 
+    // // Open Read/Write
+    // printf("edwwwwww %ld\n",atol(argv[0]));
+    //
+    // char * str[30];
+    // sprintf(str,"Hello world from %ld",(long)getpid());
 
 
+    if(atol(argv[0]) == 0)
+    WriteToNamedPipe(6,str);
+
+    long fileDescriptorR = OpenRead(atol(argv[0]));
+    long fileDescriptorW = OpenWrite(atol(argv[0]));
 
 
-    long fileDescriptorR = OpenRead(atoi(argv[0]));
-    long fileDescriptorW = OpenWrite(atoi(argv[0]));
 
     for(;;)
     {
         sleep(1);
     }
+
+
 
 }
