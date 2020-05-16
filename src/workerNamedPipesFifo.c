@@ -22,10 +22,10 @@ bool UnlinkNamedPipe_FIFO(long pid, char * flag)
     return true;
 }
 
-long ReadFromNamedPipe(long fileDescriptor, char * buffer)
+long ReadFromNamedPipe(long fileDescriptor, char * buffer, long bufferSize)
 {
     long bytesNumber;
-    if( (bytesNumber = read(fileDescriptor, buffer, MBUFFER)) >= 0)
+    if( (bytesNumber = read(fileDescriptor, buffer, bufferSize)) >= 0)
     {
         buffer[bytesNumber] = '\0';
         return bytesNumber;
