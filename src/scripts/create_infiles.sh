@@ -22,7 +22,7 @@ fi
 path=$3
 
 names=('John' 'David' 'Mary' 'Timothy' 'James' 'Eric' 'Jennifer' 'Andrew' 'Michael' 'Ronald' 'Maria' 'Evan' 'Mark' 'Alexa' 'Joseph')
-surnames=('Williams' 'Sanders' 'Miller' 'Hale', 'Jacobs' 'Newman' 'Green' 'Aquirre' 'Gordon' 'Fisher' 'Morris' 'Lee' 'Gonzalez' 'Collins' 'Wood')
+surnames=('Williams' 'Sanders' 'Miller' 'Hale' 'Jacobs' 'Newman' 'Green' 'Aquirre' 'Gordon' 'Fisher' 'Morris' 'Lee' 'Gonzalez' 'Collins' 'Wood')
 type=('ENTER' 'EXIT')
 # read lines from countriesFile and create directory and subdirectories
 i=1

@@ -5,6 +5,7 @@
 #include "../include/parentFunctions.h"
 
 
+
 int main(int argc, char const *argv[])
 {
     long totalWorkers;
@@ -83,32 +84,36 @@ int main(int argc, char const *argv[])
     {
         PushNode(&workersPidList,CreateWorker(i, totalWorkers, subDirectoriesPathList));
     }
+    PrintList(&workersPidList);
 
-    Node * writeNamedPipeList = NULL;
+
+
+
+    writeNamedPipeList = NULL;
     i = INITCOUNTER;
     while (i < totalWorkers)
     {
-        PushNode(&writeNamedPipeList,OpenWrite(i));
+        long fd = OpenWrite(i);
+        PushNode(&writeNamedPipeList,fd);
         i++;
+    }
+    for (long i = 0; i < totalWorkers; i++) {
+        printf("%ld ############3## %ld\n",i, GetValue(&writeNamedPipeList,i));
     }
 
     Node * readNamedPipeList = NULL;
     i = INITCOUNTER;
     while (i < totalWorkers)
     {
-        PushNode(&readNamedPipeList,OpenRead(i));
+        long fd = OpenRead(i);
+        PushNode(&readNamedPipeList,fd);
         i++;
     }
 
 
+
     printf("Waiting!!!\n");
     sleep(2);
-
-    // while(1)
-    // {
-    //     sleep(10);
-    // }
-
 
 
     for (long i = 0; i < totalWorkers; i++)
@@ -116,6 +121,10 @@ int main(int argc, char const *argv[])
         result = UnlinkNamedPipe_FIFO(i,"main");
         result = UnlinkNamedPipe_FIFO(i,"secondary");
     }
+
+
+
+
     free(path);
     DeleteList_Path(&subDirectoriesPathList);
     DeleteList(&workersPidList);

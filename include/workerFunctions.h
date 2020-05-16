@@ -8,6 +8,6 @@
 #include "list.h"
 #include "hash.h"
 
-void ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country);
+long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country);
 
 #endif
