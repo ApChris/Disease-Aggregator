@@ -4,7 +4,7 @@
 
 
 //
-void ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
+long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
 {
     // for getline
     char * line = NULL;
@@ -12,6 +12,7 @@ void ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
     long read;
     FILE * file;
 
+    long errorRecords = 0;
 
     // variables that I read from file
     char * recordID = NULL;
@@ -67,39 +68,49 @@ void ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
 
         // Read age
         tok = strtok(NULL," ");
-        age = atoi(tok);
+        age = atol(tok);
 
+        printf("--->%s %s %s %s %s %ld\n",recordID,status,patientFirstName,patientLastName,diseaseID,age);
 
-        // read ExitDate
-        tok = strtok(NULL,delimiters);
 
         // if current patient doessn't
-        if(tok == NULL)
+        if(!strcmp(status,"ENTER"))
         {
-            // Flag to fix the print function
+        //     // Flag to fix the print function
             exitDate -> day = TAG;
+            entryDate -> day = date -> day;
+            entryDate -> month = date -> month;
+            entryDate -> year = date -> year;
             info = PatientInfo_Init(recordID,patientFirstName,patientLastName,diseaseID,country, age, entryDate, exitDate);      // create the
             Hash_Insert(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),info);
 
+        //
             free(recordID);
             free(patientFirstName);
             free(patientLastName);
             free(diseaseID);
-            free(country);
 
+        //
             continue;
         }
 
-        exitDate -> day = (long)atoi(tok);
 
-        tok = strtok(NULL,delimiters);
-        exitDate -> month = (long)atoi(tok);
+        info = Hash_Find_Patient(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID), recordID);
+        if(info == NULL)
+        {
+            printf("Not found\n");
+            printf("RecordID = %s - %s\n",recordID, status);
+            errorRecords++;
+            free(recordID);
+            free(patientFirstName);
+            free(patientLastName);
+            free(diseaseID);
+            continue;
+        }
+        info -> exitDate -> day = date -> day;
+        info -> exitDate -> month = date -> month;
+        info -> exitDate -> year = date -> year;
 
-        tok = strtok(NULL,delimiters);
-        exitDate -> year = (long)atoi(tok);
-
-        info = PatientInfo_Init(recordID,patientFirstName,patientLastName,diseaseID,country, age, entryDate, exitDate);      // create the
-        Hash_Insert(diseaseHash,Hash_Function_DJB2((unsigned char *)recordID),info);
 
         free(recordID);
         free(patientFirstName);
@@ -107,12 +118,12 @@ void ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
         free(diseaseID);
 
 
-
     }
     free(entryDate);
     free(exitDate);
     free(line);
     fclose(file);
+    return errorRecords;
 }
 
 void Print_Input(char * patientRecordsFile, long diseaseHashtableNumOfEntries, long countryHashtableNumOfEntries, long bucketSize)
