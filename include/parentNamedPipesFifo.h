@@ -13,12 +13,12 @@
 #include <unistd.h>
 #define FIFOPATH "etc/fifo/myFIFO"
 
-#define MBUFFER 1000
+// #define MBUFFER 1000
 #define INITCOUNTER 0
 
 bool CreateNamedPipe_FIFO(long pid, char * flag);
 bool UnlinkNamedPipe_FIFO(long pid, char * flag);
-long ReadFromNamedPipe(long fileDescriptor, char * buffer);
+long ReadFromNamedPipe(long fileDescriptor, char * buffer, long bufferSize);
 void WriteToNamedPipe(long fileDescriptor, char * buffer);
 long OpenRead(long pid);
 long OpenWrite(long pid);

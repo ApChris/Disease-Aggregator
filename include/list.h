@@ -3,6 +3,8 @@
 
 #define FLAG 1400322
 
+
+
 typedef struct PathNode
 {
     char * path;
@@ -16,15 +18,17 @@ typedef struct Node
     struct Node * next;
 }Node;
 
+Node * writeNamedPipeList;
 
-void PushNode(Node ** head, long data);
-bool SearchInList(Node ** head, long data);
+
+void PushNode(Node ** head, long item);
+bool SearchInList(Node ** head, long item);
 long LenOfList(void * head);
 void DeleteList(Node ** head);
-void DeleteNode(Node ** head, long data);
+void DeleteNode(Node ** head, long item);
 void PrintList(Node ** head);
 void Reverse(Node ** head);
-
+long GetValue(Node ** head, long i);
 
 void PushNode_Path(PathNode ** head, char * path);
 bool SearchInList_Path(PathNode ** head, char * path);
