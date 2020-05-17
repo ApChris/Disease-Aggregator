@@ -4,13 +4,47 @@
 
 #include "../include/parentFunctions.h"
 
+Node * writeNamedPipeList = NULL;
+long totalWorkers;
+long bufferSize;
+char * path = NULL;
+Node * workersPidList = NULL;
+Node * readNamedPipeList = NULL;
+
+PathNode * subDirectoriesPathList = NULL;
+
+void StartReadingFiles_Workers()
+{
+    printf("\n\n\n\n\n\n\n\nStart Reading\n");
+    char message[MAXIMUMBUFFER];
+
+    for (size_t i = 0; i < totalWorkers; i++)
+    {
+        sprintf(message,"/readingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
+        WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
+        kill(GetValue(&workersPidList,i),SIGUSR1);
+    }
+    sleep(1);
+    char result[200];
+    int n;
+    for (size_t i = 0; i < totalWorkers; i++)
+    {
+        do
+        {
+            usleep(1000*100);
+            printf("Check3\n");
+        }while((n=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
+
+        printf("\n%s ========= %ld %d\n", result, i, n);
+    }
+
+}
 
 
 int main(int argc, char const *argv[])
 {
-    long totalWorkers;
-    long bufferSize;
-    char * path = NULL;
+
+
     if (argc != 7)                          // Check if we have !=7 arguments
     {
       printf("ERROR INPUT!!\nGive for example : ./diseaseAggregator -w 4 -b 50 -i etc/input_dir\n");
@@ -19,16 +53,16 @@ int main(int argc, char const *argv[])
 
     for(int i = 1; i < argc; i++)           // Get arguments
     {
-      if(strcmp(argv[i],"-w") == 0)         // Get number of workers
+      if(!strcmp(argv[i],"-w"))         // Get number of workers
       {
           totalWorkers = atoi(argv[i+1]);
       }
-      else if(strcmp(argv[i],"-b") == 0)    // Get buffer Size
+      else if(!strcmp(argv[i],"-b"))    // Get buffer Size
       {
          bufferSize = atoi(argv[i+1]);
 
       }
-      else if(strcmp(argv[i],"-i") == 0)    // Path of input _dir
+      else if(!strcmp(argv[i],"-i"))    // Path of input _dir
       {
           path = (char *)malloc(sizeof(char)*strlen(argv[i+1])+1);
           strcpy(path,argv[i+1]);
@@ -38,16 +72,15 @@ int main(int argc, char const *argv[])
 
     printf("workers:%lu\nbufferSize:%lu\npath:%s\n",totalWorkers,bufferSize,path);
     bool result;
-    long i = INITCOUNTER;
-    while (i < totalWorkers)
+
+    for (long i = 0; i < totalWorkers; i++)
     {
         result = CreateNamedPipe_FIFO(i,"main");
         result = CreateNamedPipe_FIFO(i,"secondary");
 
-        i++;
     }
 
-    PathNode * subDirectoriesPathList = NULL;
+
     // GetListOfSubDirectories(path,subDirectoriesPathList);
     struct dirent * directory;
 
@@ -79,7 +112,7 @@ int main(int argc, char const *argv[])
     PrintList_Path(&subDirectoriesPathList);
 
 
-    Node * workersPidList = NULL;
+    // Create Workers
     for(long i = 0; i < totalWorkers; i++)
     {
         PushNode(&workersPidList,CreateWorker(i, totalWorkers, subDirectoriesPathList));
@@ -87,27 +120,16 @@ int main(int argc, char const *argv[])
     PrintList(&workersPidList);
 
 
-
-
-    writeNamedPipeList = NULL;
-    i = INITCOUNTER;
-    while (i < totalWorkers)
+    // Open write and read for every worker
+    for (long i = 0; i < totalWorkers; i++)
     {
+        // Open Write
         long fd = OpenWrite(i);
         PushNode(&writeNamedPipeList,fd);
-        i++;
-    }
-    for (long i = 0; i < totalWorkers; i++) {
-        printf("%ld ############3## %ld\n",i, GetValue(&writeNamedPipeList,i));
-    }
 
-    Node * readNamedPipeList = NULL;
-    i = INITCOUNTER;
-    while (i < totalWorkers)
-    {
-        long fd = OpenRead(i);
+        // Open Read
+        fd = OpenRead(i);
         PushNode(&readNamedPipeList,fd);
-        i++;
     }
 
 
@@ -115,7 +137,9 @@ int main(int argc, char const *argv[])
     printf("Waiting!!!\n");
     sleep(2);
 
+    StartReadingFiles_Workers();
 
+    printf("Exiting..\n");
     for (long i = 0; i < totalWorkers; i++)
     {
         result = UnlinkNamedPipe_FIFO(i,"main");
