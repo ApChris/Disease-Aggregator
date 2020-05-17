@@ -18,7 +18,7 @@ typedef struct Node
     struct Node * next;
 }Node;
 
-Node * writeNamedPipeList;
+
 
 
 void PushNode(Node ** head, long item);
