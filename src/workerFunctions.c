@@ -1,10 +1,19 @@
 #include "../include/workerFunctions.h"
 
-
+SumStatistics * SumStatistics_Init()
+{
+    SumStatistics * statistics = (SumStatistics *)malloc(sizeof(statistics));
+    statistics -> diseaseID = NULL;
+    statistics -> cases_0_20 = 0;
+    statistics -> cases_21_40 = 0;
+    statistics -> cases_41_60 = 0;
+    statistics -> cases_over_60 = 0;
+    return statistics;
+}
 
 
 //
-long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
+SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
 {
     // for getline
     char * line = NULL;
@@ -24,6 +33,7 @@ long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
     Date * entryDate = NULL;
     Date * exitDate = NULL;
 
+    SumStatistics * statisticsList = NULL;
     // for strtok
     char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
     char * tok = NULL;
@@ -70,13 +80,36 @@ long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
         tok = strtok(NULL," ");
         age = atol(tok);
 
-        printf("--->%s %s %s %s %s %ld\n",recordID,status,patientFirstName,patientLastName,diseaseID,age);
+
+
 
 
         // if current patient doessn't
         if(!strcmp(status,"ENTER"))
         {
-        //     // Flag to fix the print function
+            long flag = TAG;
+            if(age < 20)
+            {
+                flag = 0;
+            }
+            else if (age < 40)
+            {
+                flag = 1;
+            }
+            else if(age < 60)
+            {
+                flag = 2;
+            }
+            else
+            {
+                flag = 3;
+            }
+            if(SearchInList_Statistics(&statisticsList,diseaseID,flag)){}
+            else
+                PushNode_Statistics(&statisticsList,diseaseID,flag);
+
+
+            // Flag to fix the print function
             exitDate -> day = TAG;
             entryDate -> day = date -> day;
             entryDate -> month = date -> month;
@@ -84,13 +117,11 @@ long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
             info = PatientInfo_Init(recordID,patientFirstName,patientLastName,diseaseID,country, age, entryDate, exitDate);      // create the
             Hash_Insert(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),info);
 
-        //
             free(recordID);
             free(patientFirstName);
             free(patientLastName);
             free(diseaseID);
 
-        //
             continue;
         }
 
@@ -98,8 +129,8 @@ long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
         info = Hash_Find_Patient(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID), recordID);
         if(info == NULL)
         {
-            printf("Not found\n");
-            printf("RecordID = %s - %s\n",recordID, status);
+            printf("ERROR\n");
+            // printf("RecordID = %s - %s\n",recordID, status);
             errorRecords++;
             free(recordID);
             free(patientFirstName);
@@ -123,7 +154,7 @@ long ReadFile(const char * patientRecordsFile, Hash * diseaseHash, Date * date, 
     free(exitDate);
     free(line);
     fclose(file);
-    return errorRecords;
+    return statisticsList;
 }
 
 void Print_Input(char * patientRecordsFile, long diseaseHashtableNumOfEntries, long countryHashtableNumOfEntries, long bucketSize)
