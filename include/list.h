@@ -2,7 +2,7 @@
 #define __LIST_H__
 
 #define FLAG 1400322
-
+#define MAXBUFFER 2048
 
 
 typedef struct PathNode
@@ -18,6 +18,16 @@ typedef struct Node
     struct Node * next;
 }Node;
 
+
+typedef struct SumStatistics
+{
+    char * diseaseID;
+    long cases_0_20;
+    long cases_21_40;
+    long cases_41_60;
+    long cases_over_60;
+    struct SumStatistics * next;
+}SumStatistics;
 
 
 
@@ -37,4 +47,15 @@ void DeleteNode_Path(PathNode ** head, char * path);
 void PrintList_Path(PathNode ** head);
 char * GetValue_Path(PathNode ** head, long i);
 void Reverse_Path(PathNode ** head);
+
+
+
+void PushNode_Statistics(SumStatistics ** head, char * path, long flag);
+bool SearchInList_Statistics(SumStatistics ** head, char * path, long flag);
+void DeleteList_Statistics(SumStatistics ** head);
+void DeleteNode_Statistics(SumStatistics ** head, char * path);
+char * PrintList_Statistics(SumStatistics ** head);
+char * GetValue_Statistics(SumStatistics ** head, long i);
+void Reverse_Statistics(SumStatistics ** head);
+
 #endif
