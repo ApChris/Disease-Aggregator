@@ -46,10 +46,8 @@ long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPa
     // if child
     if( (workerPid = fork()) == 0)
     {
-        sleep(5);
         execvp("./worker", workerArguments);
 
-        // return workerPid;
 
     }
     else

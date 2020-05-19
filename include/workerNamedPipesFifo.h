@@ -14,12 +14,12 @@
 
 #define FIFOPATH "etc/fifo/myFIFO"
 
-// #define MBUFFER 1000
+#define MAXIMUMBUFFER 1000
 #define INITCOUNTER 0
 #define PROCESSIDSTRING 50
 
 bool UnlinkNamedPipe_FIFO(long pid, char * flag);
-long ReadFromNamedPipe(long fileDescriptor, char * buffer, long bufferSize);
+long ReadFromNamedPipe(long fileDescriptor, char * buffer);
 void WriteToNamedPipe(long fileDescriptor, char * buffer);
 long OpenRead(long pid);
 long OpenWrite(long pid);
