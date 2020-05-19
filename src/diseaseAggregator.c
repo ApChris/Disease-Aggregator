@@ -20,7 +20,7 @@ void StartReadingFiles_Workers()
 
     for (size_t i = 0; i < totalWorkers; i++)
     {
-        sprintf(message,"/readingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
+        sprintf(message,"/ReadingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
         WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
         kill(GetValue(&workersPidList,i),SIGUSR1);
     }
