@@ -5,7 +5,7 @@ long fileDescriptorR;
 long fileDescriptorW;
 long processID;
 
-void readingFiles(char * procID, char * path)
+void ReadingFiles(char * procID, char * path)
 {
     printf("Hello from readingfiles %s %s\n", procID, path);
 
@@ -123,7 +123,7 @@ void readingFiles(char * procID, char * path)
 
     for (long i = 0; i < LenOfList(filesPathList); i++)
     {
-        // printf("%s\n",GetValue_Path(&filesPathList, i));
+
         char * currentDate = malloc(1 + sizeof(char) * strlen(GetValue_Path(&filesPathList, i)));
         strcpy(currentDate,GetValue_Path(&filesPathList, i));
         Date * cdate = malloc(sizeof(*cdate));
@@ -143,10 +143,38 @@ void readingFiles(char * procID, char * path)
         cdate -> year = atol(tok);
 
 
-        long errorRecords = ReadFile(GetValue_Path(&filesPathList, i), diseaseHash, cdate, country);
-        WriteToNamedPipe(fileDescriptorW,"Hello from readingfiles");
+        SumStatistics * statistics = FillStructures(GetValue_Path(&filesPathList, i), diseaseHash, cdate, country);
+        printf("statistics of %s\n",GetValue_Path(&filesPathList, i));
+        // PrintList_Statistics(&statistics);
+        printf("-----\n");
+        char messageStatistics[MAXBUFFER];
+        sprintf(messageStatistics,"aera\n");
+        // messageStatistics = PrintList_Statistics(&statistics);
+        // printf("%s\n",messageStatistics);
+        long flag = 0;
+        while(statistics != NULL)
+        {
+            if(flag == 0)
+            {
+                sprintf(messageStatistics, "\n%ld-%ld-%ld\n%s\n%s\nAge range 0-20 years: %ld cases\nAge range 21-40 years: %ld cases\nAge range 41-60 years: %ld cases\nAge range 65+ years: %ld cases\n",cdate -> day, cdate -> month, cdate -> year, country, statistics -> diseaseID,statistics -> cases_0_20,statistics -> cases_21_40,statistics -> cases_41_60,statistics -> cases_over_60);
+                flag++;
+                statistics = statistics -> next;
+                WriteToNamedPipe(fileDescriptorW,messageStatistics);
+            }
+            else
+            {
+                sprintf(messageStatistics, "\n%s\nAge range 0-20 years: %ld cases\nAge range 21-40 years: %ld cases\nAge range 41-60 years: %ld cases\nAge range 65+ years: %ld cases\n",statistics -> diseaseID,statistics -> cases_0_20,statistics -> cases_21_40,statistics -> cases_41_60,statistics -> cases_over_60);
+                statistics = statistics -> next;
+                WriteToNamedPipe(fileDescriptorW,messageStatistics);
+            }
+
+        }
+        // WriteToNamedPipe(fileDescriptorW,"Hello from readingfiles");
+        // WriteToNamedPipe(fileDescriptorW,messageStatistics);
+
         free(currentDate);
         free(cdate);
+        free(statistics);
     }
     // Hash_Print(diseaseHash);
 
@@ -160,9 +188,6 @@ void readingFiles(char * procID, char * path)
     Hash_Deallocate(&diseaseHash,1);
     free(diseaseHash);
 
-
-
-    //
 }
 
 
@@ -173,28 +198,13 @@ void SigHandler(long a)
     //printf("Command is: %s\n", buffer);
     printf("----------------------------------------------------> %s   %d\n", buffer, getpid());
     char command[15];
-    char * arguments, * query;
+    char * arguments;
 
-
-    // char * answer = (char *)malloc(sizeof(char) * 100);
-    // sprintf(answer, "This is my answer from %d worker",getpid());
-    // WriteToNamedPipe(fileDescriptorW,answer);
-    //
-    // sprintf(answer, "This is my answer from %d- worker",getpid());
-    // WriteToNamedPipe(fileDescriptorW,answer);
-    //
-    // sprintf(answer, "This is my answer from %d-- worker",getpid());
-    // WriteToNamedPipe(fileDescriptorW,answer);
-    // free(answer);
-
-    printf("BUFFER = %s\n",buffer);
-    //
-    // readingFiles("Hello");
     if( (sscanf(buffer, "%14s%m[^\n]", &command, &arguments)) != EOF )
     {
         // readingFiles(arguments);
         printf("Command = %s, ---> %s\n",command, arguments);
-        if(!strcmp(command, "/readingFiles"))
+        if(!strcmp(command, "/ReadingFiles"))
         {
             // Preprocess arguments that are going to be send
             char * path;
@@ -214,7 +224,7 @@ void SigHandler(long a)
                 printf("\nWaiting....\n");
                 exit(EXIT_FAILURE);
             }
-            readingFiles(procID, path);
+            ReadingFiles(procID, path);
             printf("Edwww %s %s\n", procID, path);
             // sscanf(args, "%m[^\n]", &query);
             // if (!query)
