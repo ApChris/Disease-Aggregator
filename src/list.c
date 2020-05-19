@@ -284,3 +284,196 @@ void Reverse_Path(PathNode ** head)
     }
     *head = prev;
 }
+
+
+
+
+
+/////////////////////////////// Statistics ///////////////////////////////
+
+
+void PushNode_Statistics(SumStatistics ** head, char * diseaseID, long flag)
+{
+    SumStatistics * statistics = (SumStatistics *)malloc(sizeof(SumStatistics));
+
+
+    statistics -> diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(diseaseID));
+    strcpy(statistics -> diseaseID,(const  char *)diseaseID);
+
+    // The next pointer of new statistics
+    statistics -> next = (* head);
+
+    if(flag == 0)
+    {
+        statistics -> cases_0_20 = 1;
+        statistics -> cases_21_40 = 0;
+        statistics -> cases_41_60 = 0;
+        statistics -> cases_over_60 = 0;
+    }
+    else if(flag == 1)
+    {
+        statistics -> cases_0_20 = 0;
+        statistics -> cases_21_40 = 1;
+        statistics -> cases_41_60 = 0;
+        statistics -> cases_over_60 = 0;
+    }
+    else if(flag == 2)
+    {
+        statistics -> cases_0_20 = 0;
+        statistics -> cases_21_40 = 0;
+        statistics -> cases_41_60 = 1;
+        statistics -> cases_over_60 = 0;
+    }
+    else
+    {
+        statistics -> cases_0_20 = 0;
+        statistics -> cases_21_40 = 0;
+        statistics -> cases_41_60 = 0;
+        statistics -> cases_over_60 = 1;
+    }
+
+    // Set head to point to the new node
+    (*head) = statistics;
+
+}
+
+bool SearchInList_Statistics(SumStatistics ** head, char * diseaseID, long flag)
+{
+
+    SumStatistics * tmp = *head;
+    while(tmp != NULL)
+    {
+        if(!strcmp(tmp -> diseaseID, diseaseID))
+        {
+            if(flag == 0)
+            {
+                tmp -> cases_0_20++;
+            }
+            else if(flag == 1)
+            {
+                tmp -> cases_21_40++;
+            }
+            else if(flag == 2)
+            {
+                tmp -> cases_41_60++;
+            }
+            else
+            {
+                tmp -> cases_over_60++;
+            }
+            return true;
+        }
+        tmp = tmp -> next;
+    }
+    return false;
+}
+
+char * GetValue_Statistics(SumStatistics ** head, long i)
+{
+
+    SumStatistics * tmp = *head;
+    long j = 0;
+    while(tmp != NULL)
+    {
+        if(j == i)
+        {
+            return tmp -> diseaseID;
+        }
+        tmp = tmp -> next;
+        j++;
+    }
+    return NULL;
+}
+
+
+void DeleteList_Statistics(SumStatistics ** head)
+{
+    SumStatistics * current = * head;
+    SumStatistics * next;
+
+    while(current != NULL)
+    {
+        // change head
+        next = current -> next;
+        free(current -> diseaseID);
+        free(current);
+        current = next;
+    }
+
+
+    *head = NULL;
+}
+
+void DeleteNode_Statistics(SumStatistics ** head, char * diseaseID)
+{
+    SumStatistics * tmp = *head;
+    SumStatistics * prev;
+
+
+    if(tmp != NULL && !strcmp(tmp -> diseaseID, diseaseID))
+    {
+        // change head
+        *head = tmp -> next;
+        free(tmp -> diseaseID);
+        free(tmp);
+        return;
+    }
+
+    // Search for the item to be deleted
+    while(tmp != NULL && strcmp(tmp -> diseaseID, diseaseID))
+    {
+        prev = tmp;
+        tmp = tmp -> next;
+    }
+
+
+
+
+    // if data doesn't exist in ll
+    if(tmp == NULL)
+    {
+        return;
+    }
+    // unlink the node from ll
+    prev -> next = tmp -> next;
+    free(tmp -> diseaseID);
+    free(tmp);
+}
+
+
+
+char * PrintList_Statistics(SumStatistics ** head)
+{
+    SumStatistics * tmp = *head;
+    char message[MAXBUFFER];
+    while(tmp != NULL)
+    {
+        sprintf(message, "%s\nCases 0-20: %ld\nCases 21-40: %ld\nCases 41-60: %ld\nCases 65+: %ld\n",tmp -> diseaseID,tmp -> cases_0_20,tmp -> cases_21_40,tmp -> cases_41_60,tmp -> cases_over_60);
+        // printf("%s\n",tmp -> diseaseID);
+        // printf("Cases 0-20: %ld\n", tmp -> cases_0_20);
+        // printf("Cases 21-40: %ld\n", tmp -> cases_21_40);
+        // printf("Cases 41-60: %ld\n", tmp -> cases_41_60);
+        // printf("Cases 65+: %ld\n", tmp -> cases_over_60);
+
+        tmp = tmp -> next;
+    }
+    // printf("\n");
+    printf("%s\n",message);
+    return message;
+}
+
+void Reverse_Statistics(SumStatistics ** head)
+{
+    SumStatistics * prev = NULL;
+    SumStatistics * current = *head;
+    SumStatistics * next = NULL;
+
+    while(current != NULL)
+    {
+        next = current -> next;
+        current -> next = prev;
+        prev = current;
+        current = next;
+    }
+    *head = prev;
+}
