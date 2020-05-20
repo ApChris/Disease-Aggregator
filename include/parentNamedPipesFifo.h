@@ -13,7 +13,7 @@
 #include <unistd.h>
 #define FIFOPATH "etc/fifo/myFIFO"
 
-#define MAXIMUMBUFFER 1000
+#define MAXIMUMBUFFER 4096
 #define INITCOUNTER 0
 
 bool CreateNamedPipe_FIFO(long pid, char * flag);

@@ -14,7 +14,7 @@
 
 #define FIFOPATH "etc/fifo/myFIFO"
 
-#define MAXIMUMBUFFER 1000
+#define MAXIMUMBUFFER 4096
 #define INITCOUNTER 0
 #define PROCESSIDSTRING 50
 

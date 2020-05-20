@@ -10,6 +10,6 @@
 
 
 
-SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country);
+SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Hash * patientHash, Date * date, char * country);
 
 #endif

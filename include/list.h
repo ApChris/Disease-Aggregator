@@ -2,8 +2,9 @@
 #define __LIST_H__
 
 #define FLAG 1400322
-#define MAXBUFFER 2048
+#define MAXBUFFER 4096
 
+#include "date.h"
 
 typedef struct PathNode
 {
