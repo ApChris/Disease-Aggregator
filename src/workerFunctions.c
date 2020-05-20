@@ -13,7 +13,7 @@ SumStatistics * SumStatistics_Init()
 
 
 //
-SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Date * date, char * country)
+SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Hash * patientHash, Date * date, char * country)
 {
     // for getline
     char * line = NULL;
@@ -116,6 +116,7 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
             entryDate -> year = date -> year;
             info = PatientInfo_Init(recordID,patientFirstName,patientLastName,diseaseID,country, age, entryDate, exitDate);      // create the
             Hash_Insert(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),info);
+            Hash_Insert(patientHash,Hash_Function_DJB2((unsigned char *)recordID),info);
 
             free(recordID);
             free(patientFirstName);
