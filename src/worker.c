@@ -4,10 +4,136 @@
 long fileDescriptorR;
 long fileDescriptorW;
 long processID;
+PathNode * filesPathList = NULL;
+Hash * diseaseHash;
+Hash * patientHash;
+
+void listCountries(char * path)
+{
+    printf("%s %ld\n", path, getpid());
+
+    char messageStatistics[MAXBUFFER];
+
+    sprintf(messageStatistics, "\n%s %ld\n", path, getpid());
+    WriteToNamedPipe(fileDescriptorW,messageStatistics);
+    //
+
+}
+
+void diseaseFrequency(char * arguments)
+{
+    char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
+
+    char * diseaseID;
+
+    char * tok = strtok(arguments," ");
+    if(tok == NULL)
+    {
+        printf("1error\n");
+        return true;
+    }
+    diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(diseaseID,(const  char *)tok);
+
+
+    Date * date1 = NULL;
+    Date * date2 = NULL;
+    date1 = malloc(sizeof(*date1));
+    date2 = malloc(sizeof(*date2));
+
+    // // date1
+    tok = strtok(NULL, delimiters);
+
+    date1 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> year = (long)atoi(tok);
+
+    // date2
+    tok = strtok(NULL,delimiters);
+
+    if(tok == NULL)
+    {
+        free(date1);
+        free(date2);
+        printf("error\n");
+        return true;
+    }
+    // date2
+    date2 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> year = (long)atoi(tok);
+// diseaseFrequency H1N1 10-10-2010 20-20-2020 Greece
+
+    tok = strtok(NULL,delimiters);
+    // without country
+    if(tok == NULL)
+    {
+        tResult = 0;
+        long res;
+        res = Hash_getPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,"NULL",0);
+
+        char message[MAXBUFFER];
+
+        sprintf(message,"%ld\n", res);
+        WriteToNamedPipe(fileDescriptorW,message);
+
+    }
+    // user gave a country
+    else
+    {
+        tResult = 0;
+        // store country
+        char * country;
+        country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+        strcpy(country,(const  char *)tok);
+
+        tResult = Hash_getPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,country,1);
+        char message[MAXBUFFER];
+        sprintf(message,"%ld\n",tResult);
+        WriteToNamedPipe(fileDescriptorW,message);
+        free(country);
+    }
+    free(date1);
+    free(date2);
+    return true;
+}
+
+
+void searchPatientRecord(char * recordID)
+{
+    char message[MAXBUFFER];
+
+    PatientInfo * info = Hash_Find_Patient(patientHash,Hash_Function_DJB2((unsigned char *)recordID), recordID);
+    PatientInfo_Print(info);
+    if(info == NULL)
+    {
+        sprintf(message, "\nNot Found\n");
+        WriteToNamedPipe(fileDescriptorW,message);
+    }
+    else
+    {
+        if(info -> exitDate -> day == TAG)
+        {
+            sprintf(message, "%s %s %s %s %s %ld %ld-%ld-%ld --\n",info -> recordID, info -> patientFirstName, info -> patientLastName,info -> diseaseID, info -> country, info -> age, info -> entryDate -> day, info -> entryDate -> month, info -> entryDate -> year);
+        }
+        else
+        {
+            sprintf(message, "%s %s %s %s %s %ld %ld-%ld-%ld %ld-%ld-%ld\n",info -> recordID, info -> patientFirstName, info -> patientLastName,info -> diseaseID, info -> country, info -> age, info -> entryDate -> day, info -> entryDate -> month, info -> entryDate -> year, info -> exitDate -> day, info -> exitDate -> month, info -> exitDate -> year);
+        }
+        WriteToNamedPipe(fileDescriptorW,message);
+    }
+}
 
 void ReadingFiles(char * procID, char * path)
 {
-    printf("Hello from readingfiles %s %s\n", procID, path);
 
     // Get country from subDirectoryPath
     char * country = (char *)malloc(1 + sizeof(char) * strlen(path));
@@ -19,9 +145,6 @@ void ReadingFiles(char * procID, char * path)
     tok = strtok(NULL, delimiters);
     tok = strtok(NULL, delimiters);
     strcpy(country,tok);
-
-    // Read files from subDirectory
-    PathNode * filesPathList = NULL;
 
     Date * datesArray = malloc(sizeof(*datesArray));
 
@@ -119,7 +242,8 @@ void ReadingFiles(char * procID, char * path)
     PrintList_Path(&filesPathList);
 
 
-    Hash * diseaseHash = Hash_Init(11, 512);
+    diseaseHash = Hash_Init(11, 512);
+    patientHash = Hash_Init(11, 512);
 
     for (long i = 0; i < LenOfList(filesPathList); i++)
     {
@@ -143,14 +267,10 @@ void ReadingFiles(char * procID, char * path)
         cdate -> year = atol(tok);
 
 
-        SumStatistics * statistics = FillStructures(GetValue_Path(&filesPathList, i), diseaseHash, cdate, country);
-        printf("statistics of %s\n",GetValue_Path(&filesPathList, i));
-        // PrintList_Statistics(&statistics);
-        printf("-----\n");
+        SumStatistics * statistics = FillStructures(GetValue_Path(&filesPathList, i), diseaseHash, patientHash, cdate, country);
+
         char messageStatistics[MAXBUFFER];
-        sprintf(messageStatistics,"aera\n");
-        // messageStatistics = PrintList_Statistics(&statistics);
-        // printf("%s\n",messageStatistics);
+
         long flag = 0;
         while(statistics != NULL)
         {
@@ -167,10 +287,9 @@ void ReadingFiles(char * procID, char * path)
                 statistics = statistics -> next;
                 WriteToNamedPipe(fileDescriptorW,messageStatistics);
             }
-
+            // printf("%s\n",messageStatistics);
         }
-        // WriteToNamedPipe(fileDescriptorW,"Hello from readingfiles");
-        // WriteToNamedPipe(fileDescriptorW,messageStatistics);
+
 
         free(currentDate);
         free(cdate);
@@ -185,8 +304,8 @@ void ReadingFiles(char * procID, char * path)
     DeleteList_Path(&filesPathList);
     free(filesPathList);
 
-    Hash_Deallocate(&diseaseHash,1);
-    free(diseaseHash);
+    // Hash_Deallocate(&diseaseHash,1);
+    // free(diseaseHash);
 
 }
 
@@ -196,14 +315,14 @@ void SigHandler(long a)
     char buffer[MAXIMUMBUFFER];
     ReadFromNamedPipe(fileDescriptorR, buffer);
     //printf("Command is: %s\n", buffer);
-    printf("----------------------------------------------------> %s   %d\n", buffer, getpid());
-    char command[15];
+
+    char command[50];
     char * arguments;
 
-    if( (sscanf(buffer, "%14s%m[^\n]", &command, &arguments)) != EOF )
+    if( (sscanf(buffer, "%49s%m[^\n]", &command, &arguments)) != EOF )
     {
-        // readingFiles(arguments);
-        printf("Command = %s, ---> %s\n",command, arguments);
+        // // readingFiles(arguments);
+        // printf("Command = %s ---> %s\n",command, arguments);
         if(!strcmp(command, "/ReadingFiles"))
         {
             // Preprocess arguments that are going to be send
@@ -218,38 +337,45 @@ void SigHandler(long a)
             path = (char *)malloc(sizeof(char)* strlen(tok));
             strcpy(path,tok);
 
-            if (arguments < 0)
-            {
-                printf("Error in input!\n");
-                printf("\nWaiting....\n");
-                exit(EXIT_FAILURE);
-            }
             ReadingFiles(procID, path);
-            printf("Edwww %s %s\n", procID, path);
-            // sscanf(args, "%m[^\n]", &query);
-            // if (!query)
-            // {
-            //     printf("Error in input\n");
-            //     exit(EXIT_FAILURE);
-            // }
-            //
-            // search(query);
+
+
 
         }
-        // else if(strcmp(command, "/maxcount") == 0)
-        // {
-        //     sscanf(args, "%ms", &query);
-        //     maxcount(query);
-        //     free(query);
-        //
-        // }
-        // else if(strcmp(command, "/mincount") == 0)
-        // {
-        //     sscanf(args, "%ms", &query);
-        //     mincount(query);
-        //     free(query);
-        //
-        // }
+        else if(!strcmp(command, "/listCountries"))
+        {
+            char * path;
+
+            char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
+            char * tok = NULL;
+            tok = strtok(arguments, delimiters);
+
+            tok = strtok(NULL, delimiters);
+            tok = strtok(NULL, delimiters);
+            path = (char *)malloc(sizeof(char)* strlen(tok));
+            strcpy(path,tok);
+
+            listCountries(path);
+
+        }
+        else if(!strcmp(command, "/diseaseFrequency"))
+        {
+            char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
+            // char * tok = NULL;
+            // tok = strtok(arguments, delimiters);
+
+            diseaseFrequency(arguments);
+
+        }
+        else if(!strcmp(command, "/searchPatientRecord"))
+        {
+            char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
+            char * tok = NULL;
+            tok = strtok(arguments, delimiters);
+
+            searchPatientRecord(tok);
+
+        }
         // else if(strcmp(command, "/wc") == 0)
         // {
         //     wc();
@@ -257,7 +383,8 @@ void SigHandler(long a)
     }
 }
 
-void Terminating(int signal){
+void Terminating(int signal)
+{
     close(fileDescriptorW);
     close(fileDescriptorR);
     // fclose(logsFile);
@@ -284,172 +411,10 @@ int main(int argc, const char *argv[])
     sigaction(SIGUSR1, &answerAction, NULL);
     printf("WORKER HEREE!!!!\n");
 
-    // // Get country from subDirectoryPath
-    // char * country = (char *)malloc(1 + sizeof(char) * strlen(argv[1]);
-    // strcpy(country,argv[1]);
-    // char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
-    // char * tok = NULL;
-    // tok = strtok(country, delimiters);
-    // tok = strtok(NULL, delimiters);
-    // tok = strtok(NULL, delimiters);
-    // strcpy(country,tok);
-    //
-    //
-    // // Read files from subDirectory
-    // PathNode * filesPathList = NULL;
-    //
-    // Date * datesArray = malloc(sizeof(*datesArray));
-    //
-    // struct dirent * subDirectory;
-    //
-    // DIR * subDirectoryPointer;
-    //
-    // if( ( subDirectoryPointer = opendir(argv[1])) == NULL)
-    // {
-    //     perror("Error: SubDirectory has not been opened! - WORKER");
-    //     exit(EXIT_FAILURE);
-    // }
-    //
-    // long counter = 0;
-    // char * currentDate = NULL;
-    // while( ( subDirectory = readdir(subDirectoryPointer)) != NULL)
-    // {
-    //
-    //     if((!strcmp(subDirectory -> d_name, ".")) || (!strcmp(subDirectory -> d_name, "..")))
-    //     {
-    //         continue;
-    //     }
-    //     currentDate = malloc(1 + sizeof(char) * strlen(subDirectory -> d_name));
-    //     strcpy(currentDate,subDirectory -> d_name);
-    //     char * tok = NULL;
-    //     if(counter == 0) // only for first file
-    //     {
-    //
-    //         tok = strtok(currentDate, delimiters);
-    //         datesArray[0].day = atol(tok);
-    //         tok = strtok(NULL, delimiters);
-    //         datesArray[0].month = atol(tok);
-    //         tok = strtok(NULL, delimiters);
-    //         datesArray[0].year = atol(tok);
-    //         counter++;
-    //         free(currentDate);
-    //         continue;
-    //     }
-    //     if( (datesArray = realloc(datesArray, sizeof(*datesArray)*(counter + 1)) ) == NULL)
-    //     {
-    //         perror("Error: Realloc has been failed!- WORKER");
-    //         exit(EXIT_FAILURE);
-    //     }
-    //
-    //     tok = strtok(currentDate, delimiters);
-    //
-    //     datesArray[counter].day = atol(tok);
-    //
-    //     tok = strtok(NULL, delimiters);
-    //     datesArray[counter].month = atol(tok);
-    //     tok = strtok(NULL, delimiters);
-    //     datesArray[counter].year = atol(tok);
-    //
-    //     counter++;
-    //     free(currentDate);
-    //
-    // }
-    // closedir(subDirectoryPointer);
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    // // Sort dates and push them in a list
-    // long min = 0;
-    // for (long i = 0; i < counter; i++)
-    // {
-    //     for (long j = 0; j < counter; j++)
-    //     {
-    //         if(j+1 <= counter)
-    //         {
-    //             long result = Compare_Date(&datesArray[j],&datesArray[min]);
-    //             if(result == -1)
-    //             {
-    //                 min = j;
-    //             }
-    //         }
-    //
-    //     }
-    //
-    //     char * currentMinDate[12];
-    //
-    //     sprintf(currentMinDate, "%ld-%ld-%ld", datesArray[min].day, datesArray[min].month, datesArray[min].year);
-    //
-    //     datesArray[min].year = TAG;
-    //     min = 0;
-    //
-    //     char * name = (char *)malloc(sizeof(char) * strlen(argv[1]) + strlen(currentMinDate) + 2);
-    //     strcpy(name, argv[1]);
-    //     strcat(name, "/");
-    //     strcat(name, currentMinDate);
-    //
-    //     PushNode_Path(&filesPathList,name);
-    //     free(name);
-    // }
-    //
-    // Reverse_Path(&filesPathList);
-    // PrintList_Path(&filesPathList);
-    //
-    //
-    // Hash * diseaseHash = Hash_Init(11, 512);
-    //
-    // for (long i = 0; i < LenOfList(filesPathList); i++)
-    // {
-    //     // printf("%s\n",GetValue_Path(&filesPathList, i));
-    //     char * currentDate = malloc(1 + sizeof(char) * strlen(GetValue_Path(&filesPathList, i)));
-    //     strcpy(currentDate,GetValue_Path(&filesPathList, i));
-    //     Date * cdate = malloc(sizeof(*cdate));
-    //     char * tok = NULL;
-    //     tok = strtok(currentDate, delimiters);
-    //     tok = strtok(NULL, delimiters);
-    //     tok = strtok(NULL, delimiters);
-    //
-    //     // day
-    //     tok = strtok(NULL, delimiters);
-    //
-    //     cdate -> day = atol(tok);
-    //
-    //     tok = strtok(NULL, delimiters);
-    //     cdate -> month = atol(tok);
-    //     tok = strtok(NULL, delimiters);
-    //     cdate -> year = atol(tok);
-    //
-    //
-    //     long errorRecords = ReadFile(GetValue_Path(&filesPathList, i), diseaseHash, cdate, country);
-    //     // printf("HELLOOO\n\n\n\n\n\n\n\n\n");
-    //     free(currentDate);
-    //     free(cdate);
-    //
-    // }
-    // // Hash_Print(diseaseHash);
-    // // printf("\n\n\n\n\n\n\n\nHELLOOO\n");
-    //
-    //
-    // // Deallocates
-    // free(datesArray);
-    // free(country);
-    //
-    // DeleteList_Path(&filesPathList);
-    // free(filesPathList);
-    //
-    // Hash_Deallocate(&diseaseHash,1);
-    // free(diseaseHash);
-
 
     processID = atol(argv[0]);
     fileDescriptorR = OpenRead(processID);
     fileDescriptorW = OpenWrite(processID);
-
 
 
     for(;;)
