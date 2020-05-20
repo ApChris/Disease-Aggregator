@@ -257,6 +257,53 @@ static PatientInfo * Patient_Find_Patient(const Patient * patient, const char * 
     return NULL;
 
 }
+
+static long Patient_getPatientsInThatPeriod(const Patient * patient, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t i = 0;
+
+    if(patient == NULL)
+    {
+        return 0;
+    }
+    while(i < patient -> length)
+    {
+        // /diseaseFrequency COVID-2019 10-10-2010 15-12-2020
+        if(!flag)
+        {
+            if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
+            {
+                if( (Compare_Date(patient -> info[i] -> entryDate, date1) != -1) && (Compare_Date(patient -> info[i] -> entryDate, date2) != 1) )
+                {
+                    tResult++;
+                }
+            }
+        }
+        else
+        {
+            if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
+            {
+                if(!strcmp(patient -> info[i] -> country,country))
+                {
+                    if( (Compare_Date(patient -> info[i] -> entryDate, date1) != -1) && (Compare_Date(patient -> info[i] -> entryDate, date2) != 1) )
+                    {
+                        tResult++;
+                    }
+                }
+            }
+        }
+
+
+
+        i++;
+    }
+    if(patient -> next != NULL)
+    {
+        Patient_getPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,flag);
+    }
+    return tResult;
+
+}
 // ----------------------------- BUCKET NODE -----------------------------
 static BucketNode * BucketNode_Init(long long number, size_t size)
 {
@@ -424,6 +471,32 @@ static PatientInfo * Bucket_Find_Patient(const Bucket * bucket,long long number,
 
 }
 
+
+static long Bucket_getPatientsInThatPeriod(const Bucket * bucket,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t i = 0;
+
+    if(bucket == NULL)
+    {
+        return 0;
+    }
+    while(i < bucket -> length)
+    {
+
+        if(bucket -> nodes[i] -> number == number)
+        {
+            return Patient_getPatientsInThatPeriod(bucket -> nodes[i] -> head,diseaseID, date1, date2, country, flag);
+        }
+        i++;
+    }
+    if(bucket -> next != NULL)
+    {
+        Bucket_getPatientsInThatPeriod(bucket -> next, number,diseaseID, date1, date2, country, flag);
+    }
+    return tResult;
+
+}
+
 // ----------------------------- HASH -----------------------------------------
 
 Hash * Hash_Init(size_t hashSize, size_t bucketSize)
@@ -514,4 +587,12 @@ PatientInfo * Hash_Find_Patient(Hash * ht,long long number, const char * recordI
 {
     size_t position = number % ht -> hashSize;
     return Bucket_Find_Patient(ht -> bucketTable[position],number,recordID);
+}
+
+
+long Hash_getPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t position = number % ht -> hashSize;
+    return Bucket_getPatientsInThatPeriod(ht -> bucketTable[position],number,diseaseID, date1, date2, country, flag);
+
 }
