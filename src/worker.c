@@ -132,6 +132,97 @@ void searchPatientRecord(char * recordID)
     }
 }
 
+
+
+void numPatientAdmissions(char * arguments)
+{
+    printf("%s \n", arguments);
+    char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
+
+    char * diseaseID;
+
+    char * tok = strtok(arguments," ");
+    if(tok == NULL)
+    {
+        printf("1error\n");
+        return true;
+    }
+    diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(diseaseID,(const  char *)tok);
+
+
+    Date * date1 = NULL;
+    Date * date2 = NULL;
+    date1 = malloc(sizeof(*date1));
+    date2 = malloc(sizeof(*date2));
+
+    // // date1
+    tok = strtok(NULL, delimiters);
+
+    date1 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> year = (long)atoi(tok);
+
+    // date2
+    tok = strtok(NULL,delimiters);
+
+    if(tok == NULL)
+    {
+        free(date1);
+        free(date2);
+        printf("error\n");
+        return true;
+    }
+    // date2
+    date2 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> year = (long)atoi(tok);
+// diseaseFrequency H1N1 10-10-2010 20-20-2020 Greece
+
+    tok = strtok(NULL,delimiters);
+    // without country
+    if(tok == NULL)
+    {
+        tResult = 0;
+        long res;
+        res = Hash_getPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,"NULL",0);
+
+        char message[MAXBUFFER];
+
+        sprintf(message,"%ld\n", res);
+        WriteToNamedPipe(fileDescriptorW,message);
+
+    }
+    // user gave a country
+    else
+    {
+        tResult = 0;
+        // store country
+        char * country;
+        country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+        strcpy(country,(const  char *)tok);
+
+        tResult = Hash_getPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,country,1);
+        char message[MAXBUFFER];
+        sprintf(message,"%ld\n", tResult);
+        WriteToNamedPipe(fileDescriptorW,message);
+        free(country);
+    }
+    free(date1);
+    free(date2);
+    return true;
+}
+
+
+
 void ReadingFiles(char * procID, char * path)
 {
 
@@ -370,10 +461,10 @@ void SigHandler(long a)
         else if(!strcmp(command, "/searchPatientRecord"))
         {
             char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
-            char * tok = NULL;
-            tok = strtok(arguments, delimiters);
+            // char * tok = NULL;
+            // tok = strtok(arguments, delimiters);
 
-            searchPatientRecord(tok);
+            numPatientAdmissions(arguments);
 
         }
         // else if(strcmp(command, "/wc") == 0)
