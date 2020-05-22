@@ -8,6 +8,8 @@ PathNode * filesPathList = NULL;
 Hash * diseaseHash;
 Hash * patientHash;
 
+SumStatistics * generalStatistics;
+
 void listCountries(char * path)
 {
     printf("%s %ld\n", path, getpid());
@@ -107,6 +109,75 @@ void diseaseFrequency(char * arguments)
 }
 
 
+
+void topkAgeRanges(char * arguments)
+{
+    char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
+
+    // store k
+    char * k;
+
+    char * tok = strtok(arguments," ");
+    k = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(k,(const  char *)tok);
+
+    // store country
+    tok = strtok(NULL," ");
+    char * country;
+    country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(country,(const  char *)tok);
+
+    // store diseaseID
+    char * diseaseID;
+    tok = strtok(NULL," ");
+    diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(diseaseID,(const  char *)tok);
+
+
+    Date * date1 = NULL;
+    Date * date2 = NULL;
+    date1 = malloc(sizeof(*date1));
+    date2 = malloc(sizeof(*date2));
+
+    // // date1
+    tok = strtok(NULL, delimiters);
+    date1 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> year = (long)atoi(tok);
+
+    // date2
+    tok = strtok(NULL,delimiters);
+    date2 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> year = (long)atoi(tok);
+
+    printf("%s %s %s %ld-%ld-%ld %ld-%ld-%ld\n" ,k ,country, diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
+
+    generalStatistics = SumStatistics_Init();
+    Hash_getStatisticsPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,country,generalStatistics);
+
+    char message[MAXBUFFER];
+
+    sprintf(message,"0-20: %ld\n20-40: %ld\n41-60: %ld\n60+:%ld\n", generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
+    printf("%ld %ld %ld %ld \n", generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
+    WriteToNamedPipe(fileDescriptorW,message);
+
+    free(date1);
+    free(date2);
+    return true;
+}
+
+
+
+
 void searchPatientRecord(char * recordID)
 {
     char message[MAXBUFFER];
@@ -136,7 +207,6 @@ void searchPatientRecord(char * recordID)
 
 void numPatientAdmissions(char * arguments)
 {
-    printf("%s \n", arguments);
     char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
 
     char * diseaseID;
@@ -220,6 +290,95 @@ void numPatientAdmissions(char * arguments)
     free(date2);
     return true;
 }
+
+
+
+void numPatientDischarges(char * arguments)
+{
+    char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
+
+    char * diseaseID;
+
+    char * tok = strtok(arguments," ");
+    if(tok == NULL)
+    {
+        printf("1error\n");
+        return true;
+    }
+    diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+    strcpy(diseaseID,(const  char *)tok);
+
+
+    Date * date1 = NULL;
+    Date * date2 = NULL;
+    date1 = malloc(sizeof(*date1));
+    date2 = malloc(sizeof(*date2));
+
+    // // date1
+    tok = strtok(NULL, delimiters);
+
+    date1 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date1 -> year = (long)atoi(tok);
+
+    // date2
+    tok = strtok(NULL,delimiters);
+
+    if(tok == NULL)
+    {
+        free(date1);
+        free(date2);
+        printf("error\n");
+        return true;
+    }
+    // date2
+    date2 -> day = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> month = (long)atoi(tok);
+
+    tok = strtok(NULL,delimiters);
+    date2 -> year = (long)atoi(tok);
+
+
+    tok = strtok(NULL,delimiters);
+    // without country
+    if(tok == NULL)
+    {
+        tResult = 0;
+        long res;
+        res = Hash_getExitPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,"NULL",0);
+
+        char message[MAXBUFFER];
+
+        sprintf(message,"%ld\n", res);
+        WriteToNamedPipe(fileDescriptorW,message);
+
+    }
+    // user gave a country
+    else
+    {
+        tResult = 0;
+        // store country
+        char * country;
+        country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
+        strcpy(country,(const  char *)tok);
+
+        tResult = Hash_getExitPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,country,1);
+        char message[MAXBUFFER];
+        sprintf(message,"%ld\n", tResult);
+        WriteToNamedPipe(fileDescriptorW,message);
+        free(country);
+    }
+    free(date1);
+    free(date2);
+    return true;
+}
+
 
 
 
@@ -357,7 +516,6 @@ void ReadingFiles(char * procID, char * path)
         tok = strtok(NULL, delimiters);
         cdate -> year = atol(tok);
 
-
         SumStatistics * statistics = FillStructures(GetValue_Path(&filesPathList, i), diseaseHash, patientHash, cdate, country);
 
         char messageStatistics[MAXBUFFER];
@@ -451,26 +609,41 @@ void SigHandler(long a)
         }
         else if(!strcmp(command, "/diseaseFrequency"))
         {
-            char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
-            // char * tok = NULL;
-            // tok = strtok(arguments, delimiters);
 
             diseaseFrequency(arguments);
+
+        }
+        else if(!strcmp(command, "/topk-AgeRanges"))
+        {
+
+            topkAgeRanges(arguments);
+
+        }
+        else if(!strcmp(command, "/numPatientAdmissions"))
+        {
+            numPatientAdmissions(arguments);
 
         }
         else if(!strcmp(command, "/searchPatientRecord"))
         {
             char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
-            // char * tok = NULL;
-            // tok = strtok(arguments, delimiters);
+            char * tok = NULL;
+            tok = strtok(arguments, delimiters);
 
-            numPatientAdmissions(arguments);
+            searchPatientRecord(tok);
 
         }
-        // else if(strcmp(command, "/wc") == 0)
-        // {
-        //     wc();
-        // }
+        else if(!strcmp(command, "/numPatientDischarges"))
+        {
+            numPatientDischarges(arguments);
+
+        }
+        else
+        {
+            printf("Wrong input\n");
+        }
+
+
     }
 }
 
