@@ -268,7 +268,7 @@ static long Patient_getPatientsInThatPeriod(const Patient * patient, const char 
     }
     while(i < patient -> length)
     {
-        // /diseaseFrequency COVID-2019 10-10-2010 15-12-2020
+
         if(!flag)
         {
             if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
@@ -300,6 +300,110 @@ static long Patient_getPatientsInThatPeriod(const Patient * patient, const char 
     if(patient -> next != NULL)
     {
         Patient_getPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,flag);
+    }
+    return tResult;
+
+}
+
+
+static long Patient_getExitPatientsInThatPeriod(const Patient * patient, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t i = 0;
+
+    if(patient == NULL)
+    {
+        return 0;
+    }
+    while(i < patient -> length)
+    {
+
+        if(!flag)
+        {
+            if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
+            {
+                if(patient -> info[i] -> exitDate -> day != TAG)
+                {
+                    if( (Compare_Date(patient -> info[i] -> entryDate, date1) != -1) && (Compare_Date(patient -> info[i] -> entryDate, date2) != 1) )
+                    {
+                        tResult++;
+                    }
+                }
+
+            }
+        }
+        else
+        {
+            if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
+            {
+                if(!strcmp(patient -> info[i] -> country,country))
+                {
+                    if(patient -> info[i] -> exitDate -> day != TAG)
+                    {
+                        if( (Compare_Date(patient -> info[i] -> entryDate, date1) != -1) && (Compare_Date(patient -> info[i] -> entryDate, date2) != 1) )
+                        {
+                            tResult++;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        i++;
+    }
+    if(patient -> next != NULL)
+    {
+        Patient_getExitPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,flag);
+    }
+    return tResult;
+
+}
+
+
+
+static void Patient_getStatisticsPatientsInThatPeriod(const Patient * patient, const char * diseaseID, Date * date1, Date * date2, const char * country, SumStatistics * statistics)
+{
+    size_t i = 0;
+
+    if(patient == NULL)
+    {
+        return 0;
+    }
+    while(i < patient -> length)
+    {
+
+        if(!strcmp(patient -> info[i] -> diseaseID,diseaseID))
+        {
+            if(!strcmp(patient -> info[i] -> country,country))
+            {
+                if( (Compare_Date(patient -> info[i] -> entryDate, date1) != -1) && (Compare_Date(patient -> info[i] -> entryDate, date2) != 1) )
+                {
+                    if(patient -> info[i] -> age < 20)
+                    {
+                        statistics -> cases_0_20++;
+                    }
+                    else if (patient -> info[i] -> age < 40)
+                    {
+                        statistics -> cases_21_40++;
+                    }
+                    else if(patient -> info[i] -> age < 60)
+                    {
+                        statistics -> cases_41_60++;
+                    }
+                    else
+                    {
+                        statistics -> cases_over_60++;
+                    }
+                }
+            }
+        }
+
+        i++;
+    }
+    if(patient -> next != NULL)
+    {
+        Patient_getExitPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,statistics);
     }
     return tResult;
 
@@ -497,6 +601,56 @@ static long Bucket_getPatientsInThatPeriod(const Bucket * bucket,long long numbe
 
 }
 
+
+static long Bucket_getExitPatientsInThatPeriod(const Bucket * bucket,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t i = 0;
+
+    if(bucket == NULL)
+    {
+        return 0;
+    }
+    while(i < bucket -> length)
+    {
+
+        if(bucket -> nodes[i] -> number == number)
+        {
+            return Patient_getExitPatientsInThatPeriod(bucket -> nodes[i] -> head,diseaseID, date1, date2, country, flag);
+        }
+        i++;
+    }
+    if(bucket -> next != NULL)
+    {
+        Bucket_getExitPatientsInThatPeriod(bucket -> next, number,diseaseID, date1, date2, country, flag);
+    }
+    return tResult;
+
+}
+
+static void Bucket_getStatisticsPatientsInThatPeriod(const Bucket * bucket,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, SumStatistics * statistics)
+{
+    size_t i = 0;
+
+    if(bucket == NULL)
+    {
+        return 0;
+    }
+    while(i < bucket -> length)
+    {
+
+        if(bucket -> nodes[i] -> number == number)
+        {
+            return Patient_getStatisticsPatientsInThatPeriod(bucket -> nodes[i] -> head,diseaseID, date1, date2, country, statistics);
+        }
+        i++;
+    }
+    if(bucket -> next != NULL)
+    {
+        Bucket_getStatisticsPatientsInThatPeriod(bucket -> next, number,diseaseID, date1, date2, country, statistics);
+    }
+    return tResult;
+
+}
 // ----------------------------- HASH -----------------------------------------
 
 Hash * Hash_Init(size_t hashSize, size_t bucketSize)
@@ -595,4 +749,18 @@ long Hash_getPatientsInThatPeriod(Hash * ht,long long number, const char * disea
     size_t position = number % ht -> hashSize;
     return Bucket_getPatientsInThatPeriod(ht -> bucketTable[position],number,diseaseID, date1, date2, country, flag);
 
+}
+
+
+long Hash_getExitPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag)
+{
+    size_t position = number % ht -> hashSize;
+    return Bucket_getExitPatientsInThatPeriod(ht -> bucketTable[position],number,diseaseID, date1, date2, country, flag);
+
+}
+
+void Hash_getStatisticsPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, SumStatistics * statistics)
+{
+    size_t position = number % ht -> hashSize;
+    return Bucket_getStatisticsPatientsInThatPeriod(ht -> bucketTable[position],number,diseaseID, date1, date2, country, statistics);
 }
