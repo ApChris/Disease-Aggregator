@@ -50,7 +50,7 @@ char * GetValue_Path(PathNode ** head, long i);
 void Reverse_Path(PathNode ** head);
 
 
-
+SumStatistics * SumStatistics_Init();
 void PushNode_Statistics(SumStatistics ** head, char * path, long flag);
 bool SearchInList_Statistics(SumStatistics ** head, char * path, long flag);
 void DeleteList_Statistics(SumStatistics ** head);
