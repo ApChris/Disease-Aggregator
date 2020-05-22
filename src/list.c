@@ -290,6 +290,16 @@ void Reverse_Path(PathNode ** head)
 
 
 /////////////////////////////// Statistics ///////////////////////////////
+SumStatistics * SumStatistics_Init()
+{
+    SumStatistics * statistics = (SumStatistics *)malloc(sizeof(statistics));
+    statistics -> diseaseID = NULL;
+    statistics -> cases_0_20 = 0;
+    statistics -> cases_21_40 = 0;
+    statistics -> cases_41_60 = 0;
+    statistics -> cases_over_60 = 0;
+    return statistics;
+}
 
 
 void PushNode_Statistics(SumStatistics ** head, char * diseaseID, long flag)
