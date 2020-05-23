@@ -230,14 +230,31 @@ bool Request_3(char * tok)
     date2 -> year = (long)atoi(tok);
     //
     //
-    printf("%s %s %s %ld-%ld-%ld %ld-%ld-%ld" ,k ,country, diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
+
     for (size_t i = 0; i < totalWorkers; i++)
     {
+        tok = NULL;
+        char * currentCountry = (char *)malloc(1 + sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)));
+        strcpy(currentCountry, GetValue_Path(&subDirectoriesPathList,i));
 
-        sprintf(message,"/topk-AgeRanges %s %s %s %ld-%ld-%ld %ld-%ld-%ld",k, country, diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
+        tok = strtok(currentCountry, delimiters);
+        tok = strtok(NULL, delimiters);
+        tok = strtok(NULL, delimiters);
+        if(!country)
+        {
+            printf("edw\n");
+        }
+        else
+        {
+            if(!strcmp(country,tok))
+            {
+                sprintf(message,"/topk-AgeRanges %s %s %s %ld-%ld-%ld %ld-%ld-%ld",k, country, diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
 
-        WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
-        kill(GetValue(&workersPidList,i),SIGUSR1);
+                WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
+                kill(GetValue(&workersPidList,i),SIGUSR1);
+            }
+        }
+
     }
     //
     //
@@ -246,25 +263,35 @@ bool Request_3(char * tok)
     // free(date1);
     // free(date2);
     //
-    long arrayOfK[totalWorkers];
-    char result[512];
+
+    char result[MAXBUFFER];
     int bytes;
     long res = 0;
     for (long i = 0; i < totalWorkers; i++)
     {
-        do
-        {
-            usleep(100000);
+        char * currentCountry = (char *)malloc(1 + sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)));
+        strcpy(currentCountry, GetValue_Path(&subDirectoriesPathList,i));
 
-        }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
-        arrayOfK[i] = res;
+        tok = strtok(currentCountry, delimiters);
+        tok = strtok(NULL, delimiters);
+        tok = strtok(NULL, delimiters);
+
+            if(!strcmp(country,tok))
+            {
+                do
+                {
+                    usleep(100000);
+
+                }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
+
+                printf("%s\n",result);
+            }
+
 
     }
 
-    for (long i = 0; i < atol(k); i++)
-    {
-        printf("%ld\n",arrayOfK[i]);
-    }
+
+
     // printf("%ld\n",res);
 }
 
