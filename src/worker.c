@@ -159,16 +159,70 @@ void topkAgeRanges(char * arguments)
     tok = strtok(NULL,delimiters);
     date2 -> year = (long)atoi(tok);
 
-    printf("%s %s %s %ld-%ld-%ld %ld-%ld-%ld\n" ,k ,country, diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
-
     generalStatistics = SumStatistics_Init();
     Hash_getStatisticsPatientsInThatPeriod(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID),diseaseID,date1,date2,country,generalStatistics);
 
     char message[MAXBUFFER];
+    long totalPatients = generalStatistics -> cases_0_20 + generalStatistics -> cases_21_40 + generalStatistics -> cases_41_60 + generalStatistics -> cases_over_60;
+    double percentCase[4];
+    percentCase[0] = 100*((double)(generalStatistics -> cases_0_20)/totalPatients);
+    percentCase[1] = 100*((double)(generalStatistics -> cases_21_40)/totalPatients);
+    percentCase[2] = 100*((double)(generalStatistics -> cases_41_60)/totalPatients);
+    percentCase[3] = 100*((double)(generalStatistics -> cases_over_60)/totalPatients);
+    if(totalPatients == 0)
+    {
+        sprintf(message,"Not found any patient!\n");
+        WriteToNamedPipe(fileDescriptorW,message);
+        free(date1);
+        free(date2);
+        return;
+    }
+    long counter = 0;
+    long max = -1;
+    long position = -1;
+    while(counter < atol(k))
+    {
+        for (long i = 0; i < 4; i++)
+        {
+            if(percentCase[i] > max)
+            {
+                max = percentCase[i];
+                position = i;
+            }
+        }
 
-    sprintf(message,"0-20: %ld\n20-40: %ld\n41-60: %ld\n60+:%ld\n", generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
-    printf("%ld %ld %ld %ld \n", generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
-    WriteToNamedPipe(fileDescriptorW,message);
+        if(position == 0)
+        {
+            sprintf(message,"0-20: %0.lf%%\n",percentCase[position]);
+            WriteToNamedPipe(fileDescriptorW,message);
+        }
+        else if(position == 1)
+        {
+            sprintf(message,"21-40: %0.lf%%\n",percentCase[position]);
+            WriteToNamedPipe(fileDescriptorW,message);
+        }
+        else if(position == 2)
+        {
+            sprintf(message,"41-60: %0.lf%%\n",percentCase[position]);
+            WriteToNamedPipe(fileDescriptorW,message);
+        }
+        else
+        {
+
+            sprintf(message,"60+: %0.lf%%\n",percentCase[position]);
+            WriteToNamedPipe(fileDescriptorW,message);
+        }
+        percentCase[position] = -1;
+        counter++;
+        max = -1;
+        position = -1;
+    }
+
+    // printf("\n %0.lf%\n",percentCase60plus);
+    //
+    // // sprintf(message,"\n0-20: %ld\n20-40: %ld\n41-60: %ld\n60+:%ld\n", (generalStatistics -> cases_0_20/totalPatients)*100, (generalStatistics -> cases_21_40/totalPatients)*100, (generalStatistics -> cases_41_60/totalPatients)*100, (generalStatistics -> cases_over_60/totalPatients)*100);
+    // sprintf(message,"%ld \n0-20: %ld\n20-40: %ld\n41-60: %ld\n60+:%ld\n",totalPatients, generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
+    // printf("%ld %ld %ld %ld \n", generalStatistics -> cases_0_20, generalStatistics -> cases_21_40, generalStatistics -> cases_41_60, generalStatistics -> cases_over_60);
 
     free(date1);
     free(date2);
