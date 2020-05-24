@@ -60,5 +60,60 @@ long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPa
         free(workerArguments);
         return workerPid;
     }
+    return workerPid;
+}
+
+
+
+void Elimination(long sig)
+{
+    printf("Elimination has been activated!\n");
+    long currentActiveWorkers;
+    currentActiveWorkers = totalWorkers;
+    long stat;
+    long i = 0;
+    while(i < totalWorkers)
+    {
+        close(GetValue(writeNamedPipeList,i));
+        close(GetValue(readNamedPipeList,i));
+        UnlinkNamedPipe_FIFO(i,"main");
+        UnlinkNamedPipe_FIFO(i,"secondary");
+        kill(GetValue(workersPidList,i), SIGTERM);
+        wait(&stat);
+        currentActiveWorkers--;
+        printf("Active workers: %ld\n", currentActiveWorkers);
+        i++;
+    }
+    free(path);
+    DeleteList_Path(&subDirectoriesPathList);
+    DeleteList(&workersPidList);
+    DeleteList(&readNamedPipeList);
+    DeleteList(&writeNamedPipeList);
+
+}
+
+
+void ReCreateWorker(long sig)
+{
+    long i = 0;
+    if(terminateNow)
+    {
+        return;
+    }
+    pid_t pid;
+    pid = wait(NULL);
+    printf("Worker has been killed : %ld\n", pid);
+
+    while (i < totalWorkers)
+    {
+        if(GetValue(workersPidList,i) == pid)
+        {
+
+            workers_pids->update(i, generate_worker(i));
+            printf("New worker has been created using pid : %ld\n", GetValue(workersPidList,i));
+            break;
+        }
+        i++;
+    }
 
 }
