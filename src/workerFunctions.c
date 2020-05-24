@@ -25,7 +25,7 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
 
     SumStatistics * statisticsList = NULL;
     // for strtok
-    char delimiters[] = " \n\t\r\v\f\n:,/.><[]{}|=+*@#$-";
+    
     char * tok = NULL;
 
     // The struct that we are going to fill

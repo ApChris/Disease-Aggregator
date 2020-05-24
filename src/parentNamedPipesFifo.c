@@ -55,7 +55,7 @@ long ReadFromNamedPipe(long fileDescriptor, char * buffer)
         return bytesNumber;
     }
 
-    // return -1;
+    return -1;
 }
 
 void WriteToNamedPipe(long fileDescriptor, char * buffer)

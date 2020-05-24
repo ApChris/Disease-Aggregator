@@ -368,7 +368,7 @@ static void Patient_getStatisticsPatientsInThatPeriod(const Patient * patient, c
 
     if(patient == NULL)
     {
-        return 0;
+        return;
     }
     while(i < patient -> length)
     {
@@ -403,9 +403,9 @@ static void Patient_getStatisticsPatientsInThatPeriod(const Patient * patient, c
     }
     if(patient -> next != NULL)
     {
-        Patient_getExitPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,statistics);
+        Patient_getStatisticsPatientsInThatPeriod(patient -> next,diseaseID,date1,date2,country,statistics);
     }
-    return tResult;
+    return;
 
 }
 // ----------------------------- BUCKET NODE -----------------------------
@@ -633,7 +633,7 @@ static void Bucket_getStatisticsPatientsInThatPeriod(const Bucket * bucket,long 
 
     if(bucket == NULL)
     {
-        return 0;
+        return;
     }
     while(i < bucket -> length)
     {
@@ -648,7 +648,7 @@ static void Bucket_getStatisticsPatientsInThatPeriod(const Bucket * bucket,long 
     {
         Bucket_getStatisticsPatientsInThatPeriod(bucket -> next, number,diseaseID, date1, date2, country, statistics);
     }
-    return tResult;
+    return;
 
 }
 // ----------------------------- HASH -----------------------------------------

@@ -12,11 +12,11 @@ SumStatistics * generalStatistics;
 
 void listCountries(char * path)
 {
-    printf("%s %ld\n", path, getpid());
+    printf("%s %ld\n", path, (long)getpid());
 
     char messageStatistics[MAXBUFFER];
 
-    sprintf(messageStatistics, "\n%s %ld\n", path, getpid());
+    sprintf(messageStatistics, "\n%s %ld\n", path, (long)getpid());
     WriteToNamedPipe(fileDescriptorW,messageStatistics);
     //
 
@@ -31,8 +31,8 @@ void diseaseFrequency(char * arguments)
     char * tok = strtok(arguments," ");
     if(tok == NULL)
     {
-        printf("1error\n");
-        return true;
+        printf("error\n");
+        return ;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -62,7 +62,7 @@ void diseaseFrequency(char * arguments)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -105,7 +105,7 @@ void diseaseFrequency(char * arguments)
     }
     free(date1);
     free(date2);
-    return true;
+
 }
 
 
@@ -226,7 +226,7 @@ void topkAgeRanges(char * arguments)
 
     free(date1);
     free(date2);
-    return true;
+    return;
 }
 
 
@@ -269,7 +269,7 @@ void numPatientAdmissions(char * arguments)
     if(tok == NULL)
     {
         printf("1error\n");
-        return true;
+        return;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -299,7 +299,7 @@ void numPatientAdmissions(char * arguments)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -342,7 +342,7 @@ void numPatientAdmissions(char * arguments)
     }
     free(date1);
     free(date2);
-    return true;
+    return;
 }
 
 
@@ -356,8 +356,8 @@ void numPatientDischarges(char * arguments)
     char * tok = strtok(arguments," ");
     if(tok == NULL)
     {
-        printf("1error\n");
-        return true;
+        printf("error\n");
+        return;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -387,7 +387,7 @@ void numPatientDischarges(char * arguments)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -430,13 +430,13 @@ void numPatientDischarges(char * arguments)
     }
     free(date1);
     free(date2);
-    return true;
+    return;
 }
 
 
 
 
-void ReadingFiles(char * procID, char * path)
+void ReadingFiles(char * path)
 {
 
     // Get country from subDirectoryPath
@@ -526,7 +526,7 @@ void ReadingFiles(char * procID, char * path)
 
         }
 
-        char * currentMinDate[12];
+        char currentMinDate[12];
 
         sprintf(currentMinDate, "%ld-%ld-%ld", datesArray[min].day, datesArray[min].month, datesArray[min].year);
 
@@ -613,7 +613,7 @@ void ReadingFiles(char * procID, char * path)
 }
 
 
-void SigHandler(long a)
+void SigHandler()
 {
     char buffer[MAXIMUMBUFFER];
     ReadFromNamedPipe(fileDescriptorR, buffer);
@@ -640,7 +640,7 @@ void SigHandler(long a)
             path = (char *)malloc(sizeof(char)* strlen(tok));
             strcpy(path,tok);
 
-            ReadingFiles(procID, path);
+            ReadingFiles(path);
 
 
 
@@ -701,7 +701,7 @@ void SigHandler(long a)
     }
 }
 
-void Terminating(int signal)
+void Terminating()
 {
     close(fileDescriptorW);
     close(fileDescriptorR);
@@ -714,7 +714,6 @@ void Terminating(int signal)
 
 int main(int argc, const char *argv[])
 {
-
 
     static struct sigaction terminatingAction;
     static struct sigaction answerAction;
@@ -729,11 +728,12 @@ int main(int argc, const char *argv[])
     sigaction(SIGUSR1, &answerAction, NULL);
     printf("WORKER HEREE!!!!\n");
 
-
-    processID = atol(argv[0]);
-    fileDescriptorR = OpenRead(processID);
-    fileDescriptorW = OpenWrite(processID);
-
+    if(argc > 0)
+    {
+        processID = atol(argv[0]);
+        fileDescriptorR = OpenRead(processID);
+        fileDescriptorW = OpenWrite(processID);
+    }
 
     for(;;)
     {
