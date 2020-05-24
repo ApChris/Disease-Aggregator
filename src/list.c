@@ -456,6 +456,7 @@ char * PrintList_Statistics(SumStatistics ** head)
 {
     SumStatistics * tmp = *head;
     char message[MAXBUFFER];
+    char * messagePtr = message;
     while(tmp != NULL)
     {
         sprintf(message, "%s\nCases 0-20: %ld\nCases 21-40: %ld\nCases 41-60: %ld\nCases 65+: %ld\n",tmp -> diseaseID,tmp -> cases_0_20,tmp -> cases_21_40,tmp -> cases_41_60,tmp -> cases_over_60);
@@ -469,7 +470,7 @@ char * PrintList_Statistics(SumStatistics ** head)
     }
     // printf("\n");
     printf("%s\n",message);
-    return message;
+    return messagePtr;
 }
 
 void Reverse_Statistics(SumStatistics ** head)
