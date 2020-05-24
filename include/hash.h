@@ -76,4 +76,6 @@ void Hash_Print(const Hash * ht);
 void Hash_Deallocate(Hash ** ht,bool remove);
 PatientInfo * Hash_Find_Patient(Hash * ht,long long number, const char * recordID);
 long Hash_getPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag);
+long Hash_getExitPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, long flag);
+void Hash_getStatisticsPatientsInThatPeriod(Hash * ht,long long number, const char * diseaseID, Date * date1, Date * date2, const char * country, SumStatistics * statistics);
 #endif
