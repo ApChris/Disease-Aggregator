@@ -10,15 +10,22 @@ long bufferSize;
 char * path = NULL;
 Node * workersPidList = NULL;
 Node * readNamedPipeList = NULL;
-
+long flagEliminate = 0;
 PathNode * subDirectoriesPathList = NULL;
+
+void Request_1();
+void Request_2(char * tok);
+void Request_3(char * tok);
+void Request_4(char * recordID);
+void Request_5(char * tok);
+void Request_6(char * tok);
 
 void StartReadingFiles_Workers()
 {
     printf("\n\n\n\n\n\n\n\nStart Reading\n");
     char message[MAXIMUMBUFFER];
 
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         sprintf(message,"/ReadingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
         WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
@@ -27,7 +34,7 @@ void StartReadingFiles_Workers()
     sleep(1);
     char result[512];
     int bytes;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -42,7 +49,7 @@ void Request_1()
 
     char message[MAXIMUMBUFFER];
 
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         // printf("pid = %ld\n", GetValue(&workersPidList,i));
         sprintf(message,"/listCountries %s",GetValue_Path(&subDirectoriesPathList,i));
@@ -53,7 +60,7 @@ void Request_1()
 
     char result[512];
     int bytes;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -64,7 +71,7 @@ void Request_1()
 
 }
 
-bool Request_2(char * tok)
+void Request_2(char * tok)
 {
     char message[MAXIMUMBUFFER];
     char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
@@ -75,7 +82,7 @@ bool Request_2(char * tok)
     if(tok == NULL)
     {
         printf("error\n");
-        return true;
+        return;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -105,7 +112,7 @@ bool Request_2(char * tok)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -123,7 +130,7 @@ bool Request_2(char * tok)
     if(tok == NULL)
     {
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             sprintf(message,"/diseaseFrequency %s %ld-%ld-%ld %ld-%ld-%ld",diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
@@ -139,7 +146,7 @@ bool Request_2(char * tok)
         country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
         strcpy(country,(const  char *)tok);
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             char * path = malloc(sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)) + 1);
@@ -167,7 +174,7 @@ bool Request_2(char * tok)
     char result[512];
     int bytes;
     long res = 0;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -180,7 +187,7 @@ bool Request_2(char * tok)
     printf("%ld\n",res);
 }
 
-bool Request_3(char * tok)
+void Request_3(char * tok)
 {
     char message[MAXIMUMBUFFER];
     char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
@@ -231,7 +238,7 @@ bool Request_3(char * tok)
     //
     //
 
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         tok = NULL;
         char * currentCountry = (char *)malloc(1 + sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)));
@@ -242,7 +249,7 @@ bool Request_3(char * tok)
         tok = strtok(NULL, delimiters);
         if(!country)
         {
-            printf("edw\n");
+            printf("Flag\n");
         }
         else
         {
@@ -266,7 +273,7 @@ bool Request_3(char * tok)
 
     char result[MAXBUFFER];
     int bytes;
-    long res = 0;
+
     for (long i = 0; i < totalWorkers; i++)
     {
         char * currentCountry = (char *)malloc(1 + sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)));
@@ -302,7 +309,7 @@ void Request_4(char * recordID)
 
     char message[MAXIMUMBUFFER];
 
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         sprintf(message,"/searchPatientRecord %s",recordID);
         WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
@@ -312,7 +319,7 @@ void Request_4(char * recordID)
 
     char result[512];
     int bytes;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -329,7 +336,7 @@ void Request_4(char * recordID)
 }
 
 
-bool Request_5(char * tok)
+void Request_5(char * tok)
 {
     char message[MAXIMUMBUFFER];
     char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
@@ -340,7 +347,7 @@ bool Request_5(char * tok)
     if(tok == NULL)
     {
         printf("error\n");
-        return true;
+        return;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -370,7 +377,7 @@ bool Request_5(char * tok)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -389,7 +396,7 @@ bool Request_5(char * tok)
     if(tok == NULL)
     {
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             sprintf(message,"/numPatientAdmissions %s %ld-%ld-%ld %ld-%ld-%ld",diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
@@ -405,7 +412,7 @@ bool Request_5(char * tok)
         country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
         strcpy(country,(const  char *)tok);
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             char * path = malloc(sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)) + 1);
@@ -433,7 +440,7 @@ bool Request_5(char * tok)
     char result[512];
     int bytes;
     long res = 0;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -466,7 +473,7 @@ bool Request_5(char * tok)
 
 
 
-bool Request_6(char * tok)
+void Request_6(char * tok)
 {
     char message[MAXIMUMBUFFER];
     char delimiters[] = " \n\t\r\v\f\n-:,/.><[]{}|-=+*@#$;";
@@ -477,7 +484,7 @@ bool Request_6(char * tok)
     if(tok == NULL)
     {
         printf("error\n");
-        return true;
+        return;
     }
     diseaseID = ( char *)malloc(1 + sizeof(char) * strlen(tok));
     strcpy(diseaseID,(const  char *)tok);
@@ -507,7 +514,7 @@ bool Request_6(char * tok)
         free(date1);
         free(date2);
         printf("error\n");
-        return true;
+        return;
     }
     // date2
     date2 -> day = (long)atoi(tok);
@@ -526,7 +533,7 @@ bool Request_6(char * tok)
     if(tok == NULL)
     {
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             sprintf(message,"/numPatientAdmissions %s %ld-%ld-%ld %ld-%ld-%ld",diseaseID, date1 -> day, date1 -> month, date1 -> year,date2 -> day, date2 -> month, date2 -> year);
@@ -542,7 +549,7 @@ bool Request_6(char * tok)
         country = ( char *)malloc(1 + sizeof(char) * strlen(tok));
         strcpy(country,(const  char *)tok);
 
-        for (size_t i = 0; i < totalWorkers; i++)
+        for (long i = 0; i < totalWorkers; i++)
         {
 
             char * path = malloc(sizeof(char)*strlen(GetValue_Path(&subDirectoriesPathList,i)) + 1);
@@ -570,7 +577,7 @@ bool Request_6(char * tok)
     char result[512];
     int bytes;
     long res = 0;
-    for (size_t i = 0; i < totalWorkers; i++)
+    for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
@@ -648,16 +655,12 @@ static long Read_Requests_Parse(char * request)
             return false;
         }
         // /diseaseFrequency COVID-2019 10-10-2010 10-10-2020
-        // /numPatientAdmissions COVID-2019 10-10-2010 10-10-2020
-        // else if(strcmp(tok,"/numCurrentPatients") == 0)
-        // {
-        //     Request_7(diseaseHash,tok);
-        //
-        //     return false;
-        // }
+
+
         else if(!strcmp(tok,"/exit"))
         {
             printf("exiting\n");
+            Elimination(0);
             return true;
 
         }
@@ -668,8 +671,18 @@ static long Read_Requests_Parse(char * request)
 
 }
 
-// /topk-AgeRanges 10 Greece COVID-2019 10-10-2010 10-10-2020
 
+// /listCountries
+// /numPatientAdmissions COVID-2019 10-10-2010 10-10-2020
+// /diseaseFrequency COVID-2019 10-10-2010 10-10-2020
+// /diseaseFrequency MERS-COV 10-10-2010 10-10-2020
+// /diseaseFrequency MERS-COV 10-10-2010 10-10-2020 Greece
+
+
+// /topk-AgeRanges 3 Greece COVID-2019 10-10-2010 10-10-2020
+// /topk-AgeRanges 4 China COVID-2019 10-10-2010 10-10-2020
+// /topk-AgeRanges 3 USA COVID-2019 10-10-2010 10-10-2020
+// /topk-AgeRanges 4 China MERS-COV 10-10-2010 10-10-2020
 long Read_Requests()
 {
     char * request = NULL;
@@ -689,7 +702,17 @@ long Read_Requests()
 
 int main(int argc, char const *argv[])
 {
+    static struct sigaction action;
 
+    action.sa_handler = Elimination;
+    sigfillset(&(action.sa_mask));
+    sigaction(SIGINT, &action, NULL);
+    sigaction(SIGTERM, &action, NULL);
+
+    static struct sigaction workerAction;
+    workerAction.sa_handler= ReCreateWorker;
+    sigfillset(&(workerAction.sa_mask));
+    sigaction(SIGCHLD, &workerAction, NULL);
 
     if (argc != 7)                          // Check if we have !=7 arguments
     {
@@ -717,17 +740,14 @@ int main(int argc, char const *argv[])
     }
 
     printf("workers:%lu\nbufferSize:%lu\npath:%s\n",totalWorkers,bufferSize,path);
-    bool result;
 
     for (long i = 0; i < totalWorkers; i++)
     {
-        result = CreateNamedPipe_FIFO(i,"main");
-        result = CreateNamedPipe_FIFO(i,"secondary");
+        CreateNamedPipe_FIFO(i,"main");
+        CreateNamedPipe_FIFO(i,"secondary");
 
     }
 
-
-    // GetListOfSubDirectories(path,subDirectoriesPathList);
     struct dirent * directory;
 
     DIR * directoryPointer;
@@ -761,7 +781,7 @@ int main(int argc, char const *argv[])
     // Create Workers
     for(long i = 0; i < totalWorkers; i++)
     {
-        PushNode(&workersPidList,CreateWorker(i, totalWorkers, subDirectoriesPathList));
+        PushNode(&workersPidList,CreateWorker(i));
     }
     PrintList(&workersPidList);
 
@@ -778,31 +798,17 @@ int main(int argc, char const *argv[])
         PushNode(&readNamedPipeList,fd);
     }
 
-
+    // ./create_infiles.sh ../../etc/diseaseFile.txt ../../etc/countriesFile.txt input_dir 5 400
 
     printf("Waiting!!!\n");
-    sleep(2);
+    sleep(1);
 
     StartReadingFiles_Workers();
-
-    printf("Exiting..\n");
 
     printf("Requests\n");
 
     while(!Read_Requests()){}
 
-    for (long i = 0; i < totalWorkers; i++)
-    {
-        result = UnlinkNamedPipe_FIFO(i,"main");
-        result = UnlinkNamedPipe_FIFO(i,"secondary");
-    }
-
-
-
-
-    free(path);
-    DeleteList_Path(&subDirectoriesPathList);
-    DeleteList(&workersPidList);
 
     return 0;
 }
