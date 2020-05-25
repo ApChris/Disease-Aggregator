@@ -8,7 +8,9 @@
 #define PROCESSIDSTRING 50
 
 
-long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPathList);
 
 
+long CreateWorker(long processID);
+void Elimination();
+void ReCreateWorker(long signal);
 #endif
