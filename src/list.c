@@ -150,6 +150,23 @@ long GetValue(Node ** head, long i)
     return FLAG;
 }
 
+void UpdateNode(Node ** head, long i, long item)
+{
+
+    Node * tmp = *head;
+    long j = 0;
+    while(tmp != NULL)
+    {
+        if(j == i)
+        {
+            tmp -> item = item;
+        }
+        tmp = tmp -> next;
+        j++;
+    }
+}
+
+
 /////////////////////////////// Path ///////////////////////////////
 
 
