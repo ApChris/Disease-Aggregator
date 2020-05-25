@@ -40,6 +40,8 @@ void DeleteNode(Node ** head, long item);
 void PrintList(Node ** head);
 void Reverse(Node ** head);
 long GetValue(Node ** head, long i);
+void UpdateNode(Node ** head, long i, long item);
+
 
 void PushNode_Path(PathNode ** head, char * path);
 bool SearchInList_Path(PathNode ** head, char * path);
