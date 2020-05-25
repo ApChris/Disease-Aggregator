@@ -613,6 +613,7 @@ void ReadingFiles(char * path)
 }
 
 
+
 void SigHandler()
 {
     char buffer[MAXIMUMBUFFER];
@@ -701,8 +702,9 @@ void SigHandler()
     }
 }
 
-void Terminating()
+void Elimination()
 {
+    printf("Worker with pid : %ld has been eliminated\n",(long)getpid());
     close(fileDescriptorW);
     close(fileDescriptorR);
     // fclose(logsFile);
@@ -718,14 +720,18 @@ int main(int argc, const char *argv[])
     static struct sigaction terminatingAction;
     static struct sigaction answerAction;
 
-    terminatingAction.sa_handler = Terminating;
+    terminatingAction.sa_handler = Elimination;
     sigfillset(&(terminatingAction.sa_mask));
     sigaction(SIGINT, &terminatingAction, NULL);
     sigaction(SIGTERM, &terminatingAction, NULL);
 
-    answerAction.sa_handler= SigHandler;
+    answerAction.sa_handler = SigHandler;
     sigfillset(&(answerAction.sa_mask));
     sigaction(SIGUSR1, &answerAction, NULL);
+
+    answerAction.sa_handler = Elimination;
+    sigfillset(&(answerAction.sa_mask));
+    sigaction(SIGKILL, &answerAction, NULL);
     printf("WORKER HEREE!!!!\n");
 
     if(argc > 0)
