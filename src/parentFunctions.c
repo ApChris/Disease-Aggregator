@@ -1,8 +1,16 @@
 #include "../include/parentFunctions.h"
 
 
+extern Node * writeNamedPipeList;
+extern long totalWorkers;
+extern long bufferSize;
+extern char * path;
+extern Node * workersPidList;
+extern Node * readNamedPipeList;
+extern PathNode * subDirectoriesPathList;
+extern bool flagEliminate;
 
-long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPathList)
+long CreateWorker(long processID)
 {
     // array of arguments
     char ** workerArguments;
@@ -65,20 +73,21 @@ long CreateWorker(long processID, long totalWorkers, PathNode * subDirectoriesPa
 
 
 
-void Elimination(long sig)
+void Elimination()
 {
     printf("Elimination has been activated!\n");
     long currentActiveWorkers;
     currentActiveWorkers = totalWorkers;
     long stat;
     long i = 0;
+    flagEliminate = true;
     while(i < totalWorkers)
     {
-        close(GetValue(writeNamedPipeList,i));
-        close(GetValue(readNamedPipeList,i));
+        close(GetValue(&writeNamedPipeList,i));
+        close(GetValue(&readNamedPipeList,i));
         UnlinkNamedPipe_FIFO(i,"main");
         UnlinkNamedPipe_FIFO(i,"secondary");
-        kill(GetValue(workersPidList,i), SIGTERM);
+        kill(GetValue(&workersPidList,i), SIGKILL);
         wait(&stat);
         currentActiveWorkers--;
         printf("Active workers: %ld\n", currentActiveWorkers);
@@ -92,11 +101,11 @@ void Elimination(long sig)
 
 }
 
-
-void ReCreateWorker(long sig)
+//
+void ReCreateWorker(long signal)
 {
     long i = 0;
-    if(terminateNow)
+    if(flagEliminate == true)
     {
         return;
     }
@@ -106,11 +115,11 @@ void ReCreateWorker(long sig)
 
     while (i < totalWorkers)
     {
-        if(GetValue(workersPidList,i) == pid)
+        if(GetValue(&workersPidList,i) == pid)
         {
 
-            workers_pids->update(i, generate_worker(i));
-            printf("New worker has been created using pid : %ld\n", GetValue(workersPidList,i));
+            UpdateNode(&workersPidList, i, CreateWorker(i));
+            printf("New worker has been created using pid : %ld\n", GetValue(&workersPidList,i));
             break;
         }
         i++;
