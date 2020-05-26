@@ -388,6 +388,25 @@ bool SearchInList_Statistics(SumStatistics ** head, char * diseaseID, long flag)
             {
                 tmp -> cases_over_60++;
             }
+            tmp -> successRecords++;
+            return true;
+        }
+        tmp = tmp -> next;
+    }
+    return false;
+}
+
+
+bool UpdateErrors_Statistics(SumStatistics ** head, char * diseaseID)
+{
+
+    SumStatistics * tmp = *head;
+    while(tmp != NULL)
+    {
+        if(!strcmp(tmp -> diseaseID, diseaseID))
+        {
+
+            tmp -> errorRecords++;
             return true;
         }
         tmp = tmp -> next;
@@ -477,12 +496,6 @@ char * PrintList_Statistics(SumStatistics ** head)
     while(tmp != NULL)
     {
         sprintf(message, "%s\nCases 0-20: %ld\nCases 21-40: %ld\nCases 41-60: %ld\nCases 65+: %ld\n",tmp -> diseaseID,tmp -> cases_0_20,tmp -> cases_21_40,tmp -> cases_41_60,tmp -> cases_over_60);
-        // printf("%s\n",tmp -> diseaseID);
-        // printf("Cases 0-20: %ld\n", tmp -> cases_0_20);
-        // printf("Cases 21-40: %ld\n", tmp -> cases_21_40);
-        // printf("Cases 41-60: %ld\n", tmp -> cases_41_60);
-        // printf("Cases 65+: %ld\n", tmp -> cases_over_60);
-
         tmp = tmp -> next;
     }
     // printf("\n");
