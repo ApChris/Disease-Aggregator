@@ -8,6 +8,10 @@ PathNode * filesPathList = NULL;
 Hash * diseaseHash;
 Hash * patientHash;
 
+long errorRecords = 0;
+long successRecords = 0;
+PathNode * countries = NULL;
+
 SumStatistics * generalStatistics;
 
 void listCountries(char * path)
@@ -18,7 +22,6 @@ void listCountries(char * path)
 
     sprintf(messageStatistics, "\n%s %ld\n", path, (long)getpid());
     WriteToNamedPipe(fileDescriptorW,messageStatistics);
-    //
 
 }
 
@@ -449,7 +452,7 @@ void ReadingFiles(char * path)
     tok = strtok(NULL, delimiters);
     tok = strtok(NULL, delimiters);
     strcpy(country,tok);
-
+    PushNode_Path(&countries,country);
     Date * datesArray = malloc(sizeof(*datesArray));
 
     struct dirent * subDirectory;
@@ -548,7 +551,6 @@ void ReadingFiles(char * path)
 
     diseaseHash = Hash_Init(11, 512);
     patientHash = Hash_Init(11, 512);
-
     for (long i = 0; i < LenOfList(filesPathList); i++)
     {
 
@@ -577,6 +579,8 @@ void ReadingFiles(char * path)
         long flag = 0;
         while(statistics != NULL)
         {
+            errorRecords += statistics -> errorRecords;
+            successRecords += statistics -> successRecords;
             if(flag == 0)
             {
                 sprintf(messageStatistics, "\n%ld-%ld-%ld\n%s\n%s\nAge range 0-20 years: %ld cases\nAge range 21-40 years: %ld cases\nAge range 41-60 years: %ld cases\nAge range 65+ years: %ld cases\n",cdate -> day, cdate -> month, cdate -> year, country, statistics -> diseaseID,statistics -> cases_0_20,statistics -> cases_21_40,statistics -> cases_41_60,statistics -> cases_over_60);
@@ -704,13 +708,27 @@ void SigHandler()
 
 void Elimination()
 {
-    printf("Worker with pid : %ld has been eliminated\n",(long)getpid());
+
     close(fileDescriptorW);
     close(fileDescriptorR);
-    // fclose(logsFile);
-    // delete files_trie;
-    // delete file_paths;
-    // delete lines;
+    PrintList_Path(&countries);
+    printf("%ld %ld\n",successRecords,errorRecords);
+
+    FILE * file;
+    char fileName[30];
+
+    sprintf(fileName, "etc/logfiles/log_file.%ld.txt", (long)getpid());
+    file = fopen(fileName, "w+");
+
+    for (long i = 0; i < LenOfList(countries); i++)
+    {
+        fprintf(file,"%s\n",GetValue_Path(&countries,i));
+        // fputs("asdadaaaa",file);
+
+    }
+    fprintf(file, "TOTAL %ld\nSUCCESS %ld\nFAIL %ld\n",successRecords + errorRecords, successRecords, errorRecords);
+
+    fclose(file);
     exit(0);
 }
 
@@ -724,14 +742,13 @@ int main(int argc, const char *argv[])
     sigfillset(&(terminatingAction.sa_mask));
     sigaction(SIGINT, &terminatingAction, NULL);
     sigaction(SIGTERM, &terminatingAction, NULL);
+    sigaction(SIGQUIT, &terminatingAction, NULL);
 
     answerAction.sa_handler = SigHandler;
     sigfillset(&(answerAction.sa_mask));
     sigaction(SIGUSR1, &answerAction, NULL);
 
-    answerAction.sa_handler = Elimination;
-    sigfillset(&(answerAction.sa_mask));
-    sigaction(SIGKILL, &answerAction, NULL);
+
     printf("WORKER HEREE!!!!\n");
 
     if(argc > 0)
