@@ -1,8 +1,7 @@
 #include "../include/workerFunctions.h"
 
 
-
-//
+// This function is rensponsible for filling the hash with file's records
 SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHash, Hash * patientHash, Date * date, char * country)
 {
     // for getline
@@ -10,8 +9,6 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
     size_t length = 0;
     long read;
     FILE * file;
-
-    long errorRecords = 0;
 
     // variables that I read from file
     char * recordID = NULL;
@@ -25,7 +22,7 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
 
     SumStatistics * statisticsList = NULL;
     // for strtok
-    
+
     char * tok = NULL;
 
     // The struct that we are going to fill
@@ -69,10 +66,6 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
         // Read age
         tok = strtok(NULL," ");
         age = atol(tok);
-
-
-
-
 
         // if current patient doessn't
         if(!strcmp(status,"ENTER"))
@@ -120,15 +113,17 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
         info = Hash_Find_Patient(diseaseHash,Hash_Function_DJB2((unsigned char *)diseaseID), recordID);
         if(info == NULL)
         {
+            UpdateErrors_Statistics(&statisticsList,diseaseID);
             printf("ERROR\n");
+
             // printf("RecordID = %s - %s\n",recordID, status);
-            errorRecords++;
             free(recordID);
             free(patientFirstName);
             free(patientLastName);
             free(diseaseID);
             continue;
         }
+
         info -> exitDate -> day = date -> day;
         info -> exitDate -> month = date -> month;
         info -> exitDate -> year = date -> year;
@@ -145,6 +140,7 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
     free(exitDate);
     free(line);
     fclose(file);
+
     return statisticsList;
 }
 
