@@ -27,6 +27,8 @@ typedef struct SumStatistics
     long cases_21_40;
     long cases_41_60;
     long cases_over_60;
+    long errorRecords;
+    long successRecords;
     struct SumStatistics * next;
 }SumStatistics;
 
@@ -60,5 +62,5 @@ void DeleteNode_Statistics(SumStatistics ** head, char * path);
 char * PrintList_Statistics(SumStatistics ** head);
 char * GetValue_Statistics(SumStatistics ** head, long i);
 void Reverse_Statistics(SumStatistics ** head);
-
+bool UpdateErrors_Statistics(SumStatistics ** head, char * diseaseID);
 #endif
