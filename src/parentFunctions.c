@@ -87,7 +87,7 @@ void Elimination()
         close(GetValue(&readNamedPipeList,i));
         UnlinkNamedPipe_FIFO(i,"main");
         UnlinkNamedPipe_FIFO(i,"secondary");
-        kill(GetValue(&workersPidList,i), SIGKILL);
+        kill(GetValue(&workersPidList,i), SIGTERM);
         wait(&stat);
         currentActiveWorkers--;
         printf("Active workers: %ld\n", currentActiveWorkers);
