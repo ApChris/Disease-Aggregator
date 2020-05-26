@@ -24,6 +24,7 @@ void StartReadingFiles_Workers()
 {
     printf("\n\n\n\n\n\n\n\nStart Reading\n");
     char message[MAXIMUMBUFFER];
+    printf("%ld\n",LenOfList(subDirectoriesPathList));
 
     for (long i = 0; i < totalWorkers; i++)
     {
@@ -42,6 +43,9 @@ void StartReadingFiles_Workers()
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
         printf("%s\n",result);
     }
+
+
+
 }
 
 void Request_1()
@@ -660,7 +664,7 @@ static long Read_Requests_Parse(char * request)
         else if(!strcmp(tok,"/exit"))
         {
             printf("exiting\n");
-            Elimination(0);
+            Elimination();
             return true;
 
         }
@@ -708,9 +712,10 @@ int main(int argc, char const *argv[])
     sigfillset(&(action.sa_mask));
     sigaction(SIGINT, &action, NULL);
     sigaction(SIGTERM, &action, NULL);
+    // sigaction(SIGKILL, &action, NULL);
 
     static struct sigaction workerAction;
-    workerAction.sa_handler= ReCreateWorker;
+    workerAction.sa_handler = ReCreateWorker;
     sigfillset(&(workerAction.sa_mask));
     sigaction(SIGCHLD, &workerAction, NULL);
 
@@ -741,13 +746,6 @@ int main(int argc, char const *argv[])
 
     printf("workers:%lu\nbufferSize:%lu\npath:%s\n",totalWorkers,bufferSize,path);
 
-    for (long i = 0; i < totalWorkers; i++)
-    {
-        CreateNamedPipe_FIFO(i,"main");
-        CreateNamedPipe_FIFO(i,"secondary");
-
-    }
-
     struct dirent * directory;
 
     DIR * directoryPointer;
@@ -758,6 +756,7 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
 
+    // Open
     while( ( directory = readdir(directoryPointer)) != NULL)
     {
         if((!strcmp(directory -> d_name, ".")) || (!strcmp(directory -> d_name, "..")))
@@ -777,6 +776,18 @@ int main(int argc, char const *argv[])
 
     PrintList_Path(&subDirectoriesPathList);
 
+    if(totalWorkers > LenOfList(subDirectoriesPathList))
+    {
+        long diff = totalWorkers - LenOfList(subDirectoriesPathList);
+        totalWorkers -= diff;
+    }
+
+
+    for (long i = 0; i < totalWorkers; i++)
+    {
+        CreateNamedPipe_FIFO(i,"main");
+        CreateNamedPipe_FIFO(i,"secondary");
+    }
 
     // Create Workers
     for(long i = 0; i < totalWorkers; i++)
