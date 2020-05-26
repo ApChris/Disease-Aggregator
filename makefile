@@ -10,7 +10,7 @@ OBJS2 = build/worker.o \
 		build/list.o \
 		build/date.o \
 		build/hash.o \
-		
+
 
 
 CC = gcc
@@ -22,7 +22,7 @@ TARGET2 = worker
 all: $(TARGET) $(TARGET2)
 
 clean:
-	$(RM) -r $(TARGET) $(TARGET2) build/*
+	$(RM) -r $(TARGET) $(TARGET2) build/* etc/logfiles/*
 
 
 build/diseaseAggregator.o: src/diseaseAggregator.c
