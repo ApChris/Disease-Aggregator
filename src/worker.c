@@ -13,6 +13,8 @@ long successRecords = 0;
 PathNode * countries = NULL;
 
 SumStatistics * generalStatistics;
+long buffersize;
+
 
 void listCountries(char * path)
 {
@@ -441,7 +443,6 @@ void numPatientDischarges(char * arguments)
 
 void ReadingFiles(char * path)
 {
-
     // Get country from subDirectoryPath
     char * country = (char *)malloc(1 + sizeof(char) * strlen(path));
     strcpy(country,path);
@@ -620,9 +621,10 @@ void ReadingFiles(char * path)
 
 void SigHandler()
 {
+
     char buffer[MAXIMUMBUFFER];
     ReadFromNamedPipe(fileDescriptorR, buffer);
-    //printf("Command is: %s\n", buffer);
+
 
     char command[50];
     char * arguments;
@@ -754,6 +756,7 @@ int main(int argc, const char *argv[])
     if(argc > 0)
     {
         processID = atol(argv[0]);
+        buffersize = atol(argv[2]);
         fileDescriptorR = OpenRead(processID);
         fileDescriptorW = OpenWrite(processID);
     }
