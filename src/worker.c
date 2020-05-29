@@ -18,11 +18,11 @@ long buffersize;
 
 void listCountries(char * path)
 {
-    printf("%s %ld\n", path, (long)getpid());
+    // printf("%s %ld\n", path, (long)getpid());
 
     char messageStatistics[MAXBUFFER];
 
-    sprintf(messageStatistics, "\n%s %ld\n", path, (long)getpid());
+    sprintf(messageStatistics, "%s %ld", path, (long)getpid());
     WriteToNamedPipe(fileDescriptorW,messageStatistics);
 
 }
@@ -622,7 +622,8 @@ void ReadingFiles(char * path)
 void SigHandler()
 {
 
-    char buffer[MAXIMUMBUFFER];
+
+    char buffer[MAXIMUMBUFFER] = "";
     ReadFromNamedPipe(fileDescriptorR, buffer);
 
 
@@ -706,6 +707,7 @@ void SigHandler()
 
 
     }
+
 }
 
 void Elimination()
