@@ -10,6 +10,7 @@ extern Node * readNamedPipeList;
 extern PathNode * subDirectoriesPathList;
 extern bool flagEliminate;
 
+
 long CreateWorker(long processID)
 {
     // array of arguments
@@ -17,7 +18,7 @@ long CreateWorker(long processID)
 
     pid_t workerPid;
 
-    if( (workerArguments = (char **)malloc(sizeof(char *)*3)) == NULL)
+    if( (workerArguments = (char **)malloc(sizeof(char *)*4)) == NULL)
     {
         perror("Error: 1st malloc has been failed from CreateWorker function!");
         exit(EXIT_FAILURE);
@@ -48,8 +49,17 @@ long CreateWorker(long processID)
         i++;
     }
 
+    // Send bufferSize to workers
+    if( (workerArguments[2] = (char *)malloc(sizeof(char)* PROCESSIDSTRING)) == NULL)
+    {
+        perror("Error: malloc has been failed from CreateWorker function!");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(workerArguments[2], "%ld", bufferSize);
+
+
     // Put Null because argv from workers need to know where to stop
-    workerArguments[2] = NULL;
+    workerArguments[3] = NULL;
 
     // if child
     if( (workerPid = fork()) == 0)
@@ -61,7 +71,7 @@ long CreateWorker(long processID)
     else
     {
         usleep(1);
-        for (long j = 0; j < 3; j++)
+        for (long j = 0; j < 4; j++)
         {
             free(workerArguments[j]);
         }
@@ -102,7 +112,7 @@ void Elimination()
 }
 
 //
-void ReCreateWorker(long signal)
+void ReCreateWorker()
 {
     long i = 0;
     if(flagEliminate == true)
@@ -111,7 +121,7 @@ void ReCreateWorker(long signal)
     }
     pid_t pid;
     pid = wait(NULL);
-    printf("Worker has been killed : %ld\n", pid);
+    printf("Worker has been killed : %ld\n", (long)pid);
 
     while (i < totalWorkers)
     {
