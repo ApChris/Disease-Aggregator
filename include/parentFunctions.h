@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <dirent.h>
+
 #include "../include/parentNamedPipesFifo.h"
 #include "../include/list.h"
 #define PROCESSIDSTRING 50
@@ -12,5 +13,5 @@
 
 long CreateWorker(long processID);
 void Elimination();
-void ReCreateWorker(long signal);
+void ReCreateWorker();
 #endif
