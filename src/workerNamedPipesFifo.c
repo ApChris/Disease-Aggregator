@@ -115,12 +115,6 @@ void WriteToNamedPipe(long fileDescriptor, char * buffer)
         }
     }
 
-
-    // if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
-    // {
-    //     perror("ERROR:WriteToNamedPipe has been failed -> WORKER");
-    //     exit(EXIT_FAILURE);
-    // }
 }
 
 long OpenRead(long pid)
