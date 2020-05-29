@@ -18,7 +18,6 @@ long buffersize;
 
 void listCountries(char * path)
 {
-    // printf("%s %ld\n", path, (long)getpid());
 
     char messageStatistics[MAXBUFFER];
 

@@ -96,12 +96,9 @@ long ReadFromNamedPipe(long fileDescriptor, char * buffer)
 
                         strcpy(lastChunk,tempBuffer);
                         strcat(finalBuffer,lastChunk);
-
                     }
                 }
-
             }
-
         }
         counter += length;
 
@@ -109,8 +106,6 @@ long ReadFromNamedPipe(long fileDescriptor, char * buffer)
     strcpy(buffer, finalBuffer);
 
     return counter;
-
-
 }
 
 void WriteToNamedPipe(long fileDescriptor, char * buffer)

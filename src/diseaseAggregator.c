@@ -36,7 +36,6 @@ void StartReadingFiles_Workers()
     {
 
         long bytes = 0;
-
         do
         {
             usleep(1);

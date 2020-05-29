@@ -114,7 +114,7 @@ SumStatistics * FillStructures(const char * patientRecordsFile, Hash * diseaseHa
         if(info == NULL)
         {
             UpdateErrors_Statistics(&statisticsList,diseaseID);
-            printf("ERROR\n");
+            // printf("ERROR\n");
 
             // printf("RecordID = %s - %s\n",recordID, status);
             free(recordID);
