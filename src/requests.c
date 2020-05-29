@@ -15,25 +15,27 @@ void Request_1()
 
     char message[MAXIMUMBUFFER];
 
+    // send to every worker listCountriess
     for (long i = 0; i < totalWorkers; i++)
     {
-        // printf("pid = %ld\n", GetValue(&workersPidList,i));
         sprintf(message,"/listCountries %s",GetValue_Path(&subDirectoriesPathList,i));
         WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
         kill(GetValue(&workersPidList,i),SIGUSR1);
 
     }
 
-    char result[512];
+    char result[MAXIMUMBUFFER];
     int bytes;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
-            usleep(100000);
+            usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
+        printf("%s\n",result);
     }
+
 
 }
 
@@ -137,14 +139,14 @@ void Request_2(char * tok)
     free(date2);
 
 
-    char result[512];
+    char result[MAXIMUMBUFFER];
     int bytes;
     long res = 0;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
-            usleep(100000);
+            usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
         res += atol(result);
@@ -253,7 +255,7 @@ void Request_3(char * tok)
             {
                 do
                 {
-                    usleep(100000);
+                    usleep(100);
 
                 }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
 
@@ -264,8 +266,6 @@ void Request_3(char * tok)
     }
 
 
-
-    // printf("%ld\n",res);
 }
 
 // /topk-AgeRanges 3 China COVID-2019 10-10-2010 10-10-2020
@@ -283,13 +283,13 @@ void Request_4(char * recordID)
 
     }
 
-    char result[512];
+    char result[MAXIMUMBUFFER];
     int bytes;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
-            usleep(100000);
+            usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
         if(bytes > 0)
@@ -403,14 +403,14 @@ void Request_5(char * tok)
     free(date2);
 
 
-    char result[512];
+    char result[MAXIMUMBUFFER];
     int bytes;
     long res = 0;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
-            usleep(100000);
+            usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
         res += atol(result);
@@ -540,14 +540,14 @@ void Request_6(char * tok)
     free(date2);
 
 
-    char result[512];
+    char result[MAXIMUMBUFFER];
     int bytes;
     long res = 0;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
         {
-            usleep(100000);
+            usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
         res += atol(result);
