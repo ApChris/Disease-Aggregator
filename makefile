@@ -2,6 +2,7 @@ OBJS = 	build/diseaseAggregator.o \
 		build/parentNamedPipesFifo.o \
 		build/list.o \
 		build/parentFunctions.o \
+		build/requests.o
 
 
 OBJS2 = build/worker.o \
@@ -35,6 +36,9 @@ build/list.o: src/list.c
 	$(CC) $(FLAGS) $< -o $@
 
 build/parentFunctions.o: src/parentFunctions.c
+	$(CC) $(FLAGS) $< -o $@
+
+build/requests.o: src/requests.c
 	$(CC) $(FLAGS) $< -o $@
 
 
