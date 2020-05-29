@@ -1,5 +1,6 @@
 #include "../include/workerNamedPipesFifo.h"
 
+extern long buffersize;
 
 bool UnlinkNamedPipe_FIFO(long pid, char * flag)
 {
@@ -25,22 +26,101 @@ bool UnlinkNamedPipe_FIFO(long pid, char * flag)
 long ReadFromNamedPipe(long fileDescriptor, char * buffer)
 {
     long bytesNumber;
-    if( (bytesNumber = read(fileDescriptor, buffer, MAXIMUMBUFFER)) >= 0)
+    long length = 0;
+    long counter = 0;
+
+    char finalBuffer[MAXIMUMBUFFER] = "";
+    char tempBuffer[MAXIMUMBUFFER] = "";
+
+    while(read(fileDescriptor, &length, sizeof(length)) > 0)
     {
-        buffer[bytesNumber] = '\0';
-        return bytesNumber;
+
+
+        long quotient = length/buffersize;
+        if(quotient == 0)
+        {
+            // bytesNumber = read(fileDescriptor,tempBuffer, length);
+            if( (bytesNumber = read(fileDescriptor,tempBuffer, length)) >= 0)
+            {
+                char chunkLength[length];
+                strcpy(chunkLength,tempBuffer);
+                strcat(finalBuffer,chunkLength);
+            }
+
+        }
+        else
+        {
+
+            for (long i = 0; i < quotient; i++)
+            {
+                char chunk[buffersize];
+
+                if( (bytesNumber = read(fileDescriptor,tempBuffer, buffersize)) >= 0)
+                {
+                    strcpy(chunk,tempBuffer);
+
+                    strcat(finalBuffer,chunk);
+
+                    // for last bytes
+                    if(i + 1 == quotient)
+                    {
+                        char lastChunk[buffersize];
+                        long remainder = length - (quotient*buffersize);
+                        bytesNumber = read(fileDescriptor, tempBuffer, remainder);
+
+                        strcpy(lastChunk,tempBuffer);
+                        strcat(finalBuffer,lastChunk);
+
+                    }
+                }
+
+            }
+
+        }
+        counter += length;
+
     }
-    return -1;
+    strcpy(buffer, finalBuffer);
+
+    return counter;
+
 }
 
 void WriteToNamedPipe(long fileDescriptor, char * buffer)
 {
 
-    if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
+
+    long length = strlen(buffer) + 1;
+
+    if(write(fileDescriptor, &length, sizeof(length)) < 0)
     {
-        perror("ERROR:WriteToNamedPipe has been failed -> WORKER");
+        perror("ERROR:WriteToNamedPipe has been failed - WORKER");
         exit(EXIT_FAILURE);
     }
+    long quotient = length/buffersize;
+    if(quotient == 0)
+    {
+        write(fileDescriptor,buffer, length);
+    }
+    else
+    {
+        for (long i = 0; i < quotient; i++)
+        {
+            write(fileDescriptor,buffer + buffersize*i, buffersize);
+            if(i + 1 == quotient)
+            {
+                long remainder = length - (quotient*buffersize);
+                write(fileDescriptor, buffer + buffersize*(i+1), remainder);
+            }
+        }
+    }
+
+
+    // if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
+    // {
+    //     perror("ERROR:WriteToNamedPipe has been failed -> WORKER");
+    //     exit(EXIT_FAILURE);
+    // }
 }
 
 long OpenRead(long pid)
@@ -55,7 +135,6 @@ long OpenRead(long pid)
     }
     return fileDescriptor;
 }
-
 
 long OpenWrite(long pid)
 {
