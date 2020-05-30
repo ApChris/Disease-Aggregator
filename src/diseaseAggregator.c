@@ -13,45 +13,8 @@ long flagEliminate = 0;
 PathNode * subDirectoriesPathList = NULL;
 
 
-
-void StartReadingFiles_Workers()
-{
-    printf("\n\n\n\n\n\n\n\nStart Reading\n");
-    char message[MAXIMUMBUFFER];
-    printf("Check %ld %ld\n",LenOfList(subDirectoriesPathList), bufferSize);
-
-    for (long i = 0; i < totalWorkers; i++)
-    {
-
-        sprintf(message,"/ReadingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
-
-        WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
-
-        kill(GetValue(&workersPidList,i),SIGUSR1);
-    }
-    sleep(1);
-
-    char result[MAXIMUMBUFFER] = "";
-    for (long i = 0; i < totalWorkers; i++)
-    {
-
-        long bytes = 0;
-        do
-        {
-            usleep(1);
-        }while((bytes = ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
-
-        printf("%s\n",result);
-        printf("--------------------------------------\n");
-    }
-
-}
-
-
-
-
+// examples
 // ./create_infiles.sh ../../etc/diseaseFile.txt ../../etc/countriesFile.txt input_dir 5 400
-
 
 // /listCountries
 // /numPatientAdmissions COVID-2019 10-10-2010 10-10-2020
@@ -64,8 +27,7 @@ void StartReadingFiles_Workers()
 // /topk-AgeRanges 4 China COVID-2019 10-10-2010 10-10-2020
 // /topk-AgeRanges 3 USA COVID-2019 10-10-2010 10-10-2020
 // /topk-AgeRanges 4 China MERS-COV 10-10-2010 10-10-2020
-
-
+// /searchPatientRecord 10
 
 int main(int argc, char const *argv[])
 {
@@ -75,12 +37,12 @@ int main(int argc, char const *argv[])
     sigfillset(&(action.sa_mask));
     sigaction(SIGINT, &action, NULL);
     sigaction(SIGTERM, &action, NULL);
-    // sigaction(SIGKILL, &action, NULL);
+    sigaction(SIGKILL, &action, NULL);
 
-    // static struct sigaction workerAction;
-    // workerAction.sa_handler = ReCreateWorker;
-    // sigfillset(&(workerAction.sa_mask));
-    // sigaction(SIGCHLD, &workerAction, NULL);
+    static struct sigaction workerAction;
+    workerAction.sa_handler = ReCreateWorker;
+    sigfillset(&(workerAction.sa_mask));
+    sigaction(SIGCHLD, &workerAction, NULL);
 
     if (argc != 7)                          // Check if we have !=7 arguments
     {
@@ -107,7 +69,6 @@ int main(int argc, char const *argv[])
 
     }
 
-    printf("workers:%lu\nbufferSize:%lu\npath:%s\n",totalWorkers,bufferSize,path);
 
     struct dirent * directory;
 
@@ -126,7 +87,7 @@ int main(int argc, char const *argv[])
         {
             continue;
         }
-        printf("%s\n", directory -> d_name);
+        // printf("%s\n", directory -> d_name);
         char * name = (char *)malloc(sizeof(char) * strlen(path) + strlen(directory -> d_name) + 2);
         strcpy(name, path);
         strcat(name, "/");
@@ -137,14 +98,21 @@ int main(int argc, char const *argv[])
     }
     closedir(directoryPointer);
 
-    PrintList_Path(&subDirectoriesPathList);
+    // PrintList_Path(&subDirectoriesPathList);
 
+    // Check if total workers
     if(totalWorkers > LenOfList(subDirectoriesPathList))
     {
         long diff = totalWorkers - LenOfList(subDirectoriesPathList);
         totalWorkers -= diff;
     }
-
+    else if(totalWorkers < LenOfList(subDirectoriesPathList))
+    {
+        printf("The number of workers must be >= from the number of subdirectories\nTry again!!\n");
+        DeleteList_Path(&subDirectoriesPathList);
+        free(path);
+        exit(1);
+    }
 
     for (long i = 0; i < totalWorkers; i++)
     {
