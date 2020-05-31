@@ -284,7 +284,8 @@ void Request_4(char * recordID)
     }
 
     char result[MAXIMUMBUFFER];
-    int bytes;
+    long bytes;
+    long counterNotFound = 0;
     for (long i = 0; i < totalWorkers; i++)
     {
         do
@@ -292,13 +293,20 @@ void Request_4(char * recordID)
             usleep(100);
 
         }while((bytes=ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
-        if(bytes > 0)
+        if(strcmp(result,"Not Found"))
         {
             printf("%s\n", result);
         }
-
+        else
+        {
+            counterNotFound++;
+        }
+        // printf("%s\n",result);
     }
-
+    if(counterNotFound == totalWorkers)
+    {
+        printf("%s\n",result);
+    }
 }
 
 
@@ -574,6 +582,11 @@ void Request_6(char * tok)
 
 }
 
+void reCreate()
+{
+    long i = 0;
+    kill(GetValue(&workersPidList,i),SIGSEGV);
+}
 
 
 static long Read_Requests_Parse(char * request)
@@ -620,9 +633,11 @@ static long Read_Requests_Parse(char * request)
             Request_6(tok);
             return false;
         }
-        // /diseaseFrequency COVID-2019 10-10-2010 10-10-2020
-
-
+        else if(!strcmp(tok,"/reCreateWorker"))
+        {
+            reCreate();
+            return false;
+        }
         else if(!strcmp(tok,"/exit"))
         {
             printf("exiting\n");
