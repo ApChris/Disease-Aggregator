@@ -15,7 +15,7 @@ PathNode * subDirectoriesPathList = NULL;
 
 // examples
 // ./create_infiles.sh ../../etc/diseaseFile.txt ../../etc/countriesFile.txt input_dir 5 400
-
+// ./diseaseAggregator -w 5 -b 50 -i etc/input_dir
 // /listCountries
 // /numPatientAdmissions COVID-2019 10-10-2010 10-10-2020
 // /diseaseFrequency COVID-2019 10-10-2010 10-10-2020
