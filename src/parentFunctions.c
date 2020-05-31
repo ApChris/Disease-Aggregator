@@ -11,6 +11,43 @@ extern PathNode * subDirectoriesPathList;
 extern bool flagEliminate;
 
 
+void StartReadingFiles_Workers()
+{
+    printf("\n\n\n\n\n\n\n\nStart Reading\n");
+    char message[MAXIMUMBUFFER];
+
+
+    // for every worker
+    for (long i = 0; i < totalWorkers; i++)
+    {
+
+        // send
+        sprintf(message,"/ReadingFiles %ld %s",i,GetValue_Path(&subDirectoriesPathList,i));
+
+        WriteToNamedPipe(GetValue(&writeNamedPipeList,i), message);
+
+        kill(GetValue(&workersPidList,i),SIGUSR1);
+
+
+    }
+    sleep(1);
+
+    char result[MAXIMUMBUFFER] = "";
+    for (long i = 0; i < totalWorkers; i++)
+    {
+
+        long bytes = 0;
+        do
+        {
+            usleep(1);
+        }while((bytes = ReadFromNamedPipe(GetValue(&readNamedPipeList,i), result))<=0);
+
+        printf("%s\n",result);
+        printf("--------------------------------------\n");
+    }
+
+}
+
 long CreateWorker(long processID)
 {
     // array of arguments
@@ -88,7 +125,7 @@ void Elimination()
     printf("Elimination has been activated!\n");
     long currentActiveWorkers;
     currentActiveWorkers = totalWorkers;
-    long stat;
+    int stat;
     long i = 0;
     flagEliminate = true;
     while(i < totalWorkers)
