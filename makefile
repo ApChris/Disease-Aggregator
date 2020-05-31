@@ -15,7 +15,7 @@ OBJS2 = build/worker.o \
 
 
 CC = gcc
-FLAGS = -Wall -Wextra -g -c
+FLAGS = -Wextra -g -c
 
 TARGET = diseaseAggregator
 TARGET2 = worker

@@ -22,11 +22,11 @@ PathNode * subDirectoriesPathList = NULL;
 // /diseaseFrequency MERS-COV 10-10-2010 10-10-2020
 // /diseaseFrequency MERS-COV 10-10-2010 10-10-2020 Greece
 
-
 // /topk-AgeRanges 3 Greece COVID-2019 10-10-2010 10-10-2020
 // /topk-AgeRanges 4 China COVID-2019 10-10-2010 10-10-2020
 // /topk-AgeRanges 3 USA COVID-2019 10-10-2010 10-10-2020
 // /topk-AgeRanges 4 China MERS-COV 10-10-2010 10-10-2020
+
 // /searchPatientRecord 10
 
 int main(int argc, char const *argv[])

@@ -254,7 +254,7 @@ static PatientInfo * Patient_Find_Patient(const Patient * patient, const char * 
     {
         Patient_Find_Patient(patient -> next,recordID);
     }
-    return NULL;
+    // return NULL;
 
 }
 
@@ -571,7 +571,7 @@ static PatientInfo * Bucket_Find_Patient(const Bucket * bucket,long long number,
     {
         Bucket_Find_Patient(bucket -> next, number,recordID);
     }
-    return NULL;
+    // return NULL;
 
 }
 
@@ -739,6 +739,7 @@ void Hash_Deallocate(Hash ** ht,bool remove)
 
 PatientInfo * Hash_Find_Patient(Hash * ht,long long number, const char * recordID)
 {
+
     size_t position = number % ht -> hashSize;
     return Bucket_Find_Patient(ht -> bucketTable[position],number,recordID);
 }
