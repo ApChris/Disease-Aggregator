@@ -64,7 +64,6 @@ long ReadFromNamedPipe(long fileDescriptor, char * buffer)
         long quotient = length/bufferSize;
         if(quotient == 0)
         {
-            // bytesNumber = read(fileDescriptor,tempBuffer, length);
             if( (bytesNumber = read(fileDescriptor,tempBuffer, length)) >= 0)
             {
                 char chunkLength[length];
@@ -117,11 +116,14 @@ void WriteToNamedPipe(long fileDescriptor, char * buffer)
         perror("ERROR:WriteToNamedPipe has been failed - PARENT");
         exit(EXIT_FAILURE);
     }
+
+    // if bufferSize > length . just read length bytes
     long quotient = length/bufferSize;
     if(quotient == 0)
     {
         write(fileDescriptor,buffer, length);
     }
+    // else split message in chunks
     else
     {
         for (long i = 0; i < quotient; i++)
@@ -135,11 +137,7 @@ void WriteToNamedPipe(long fileDescriptor, char * buffer)
         }
     }
 
-    // if(write(fileDescriptor, buffer, strlen(buffer)) < 0)
-    // {
-    //     perror("ERROR:WriteToNamedPipe has been failed - PARENT");
-    //     exit(EXIT_FAILURE);
-    // }
+
 }
 
 long OpenRead(long pid)
