@@ -14,9 +14,9 @@
 
         Compilation & Execution 
 
-        Compile         : In general folder open a terminal and execute this command:          make rebuild
-        Execution       : In src/scripts folder open a terminal and execute this command:      ./create_infiles.sh ../../etc/diseaseFile.txt ../../etc/countriesFile.txt input_dir 5 400           (~10 sec execution time)
-                        : In general folder open a terminal and execute this command:          ./diseaseAggregator -w 5 -b 50 -i etc/input_dir
+        Compile         : make rebuild
+        Execution       : ./create_infiles.sh ../../etc/diseaseFile.txt ../../etc/countriesFile.txt input_dir 5 400           (~10 sec execution time)
+                        : ./diseaseAggregator -w 5 -b 50 -i etc/input_dir
 
 
         User Input Examples:
