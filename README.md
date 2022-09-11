@@ -6,9 +6,9 @@
 
         Source folder     : Disease-Aggregator-master/src
         Header folder     : Disease-Aggregator-master/include
-        Build folder      : Disease-Aggregator-master/build         (This folder holds .o files)
-        Etc folder        : Disease-Aggregator-master/etc           (This fodler holds the input files, logfiles, fifo files)
-        Output folder     : Disease-Aggregator-master/output        (This folder holds the output from > for better file organization, In default compilation/execution this folder is not used)
+        Build folder      : Disease-Aggregator-master/build         
+        Etc folder        : Disease-Aggregator-master/etc           
+        Output folder     : Disease-Aggregator-master/output        
 
 
 
@@ -34,13 +34,6 @@
 
                         /searchPatientRecord 10
 
-
-
-        Explanation
-
-       Every data structure is a part from Disease-Monitor. In this project, I added a multi-process functionality by using named pipes with non-blocking. The method that I have followed is master and slave ( or main/secondary),
-        main is the parent process and secondary is the worker process. I have split the files in worker"Files" and parent"Files". For example in parentNamedPipesFifo.c you can find the functions that parent is going to use to comm$
-        Also in parentFunctions you can find the functions/signals that parent is going to use. Workers follow the same pattern respectively.
 
         Extra Tools
 
